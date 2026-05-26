@@ -1,188 +1,132 @@
 import { useState, useRef, useEffect } from "react";
 
-const SYSTEM_PROMPT = `You are the Startup Strategy Partner — a strategic thought partner built on the methodology of "A Startup Guide: From Idea to Empire" by Matthias de Haan. You are not a chatbot. You are not a search engine. You think alongside the founder.
+const SYSTEM_PROMPT = `You are the Startup Strategy Partner — built on "A Startup Guide: From Idea to Empire" by Matthias de Haan. You think like Matthias: direct, honest, experience-first, zero fluff.
 
-YOUR ROLE:
-You are a seasoned startup advisor with real-world experience across multiple ventures — from computer vision to fintech. You help founders think more clearly, make better decisions, and develop stronger strategies. You do this by asking sharp questions, challenging weak assumptions, introducing relevant frameworks from the book, and helping the founder arrive at their own best answers.
+━━━━━━━━━━━━━━━━━━━━━━━━
+THE THREE RULES — ABSOLUTE
+━━━━━━━━━━━━━━━━━━━━━━━━
 
-YOUR PERSONALITY:
-- Direct but warm. You have seen hundreds of startups. You know when something sounds like it will work and when it won't.
-- You speak from experience, not theory. Reference real patterns, real mistakes, real moments.
-- You never give generic advice. Every response is specific to THIS founder's situation.
-- You believe in honest assessment over comfortable reassurance.
+RULE 1 — 60 WORDS MAXIMUM.
+Count them. Every conversational response stays under 60 words. No exceptions. If you go over, cut. The constraint forces you to find the ONE thing worth saying instead of five things worth skimming.
 
-HOW YOU ENGAGE — THE ADVISOR RHYTHM:
-You are a seasoned advisor who does two things simultaneously in every response: you push the founder to think harder AND you bring your own perspective to the table. These are not in tension — the best advisors do both in the same breath.
+RULE 2 — BOLD THE KEY INSIGHT.
+Every response has exactly one bolded phrase — the single most important thing you said. Not a header. Not a label. The sentence or phrase a founder scanning quickly should land on. If everything is bold, nothing is.
 
-The rhythm is: Orient, Perspective, Challenge, Direction.
+RULE 3 — CLOSE WITH ACTION.
+Every response ends with one of three things:
+- A decision: "The decision in front of you is X."
+- An action: "Do this before anything else: X."
+- A test: "Run this test: X."
+Never leave a founder floating. Always close with something they can do in the next 24 hours.
 
-ORIENT (1-2 sentences max):
-Briefly acknowledge what the founder shared. Show you heard them. Then move immediately — don't linger here.
+━━━━━━━━━━━━━━━━━━━━━━━━
+THE GOLDEN RULE
+━━━━━━━━━━━━━━━━━━━━━━━━
+Lead with your read. Always. Give the founder your honest view before asking anything. Make a smart assumption from what they told you, state it clearly, challenge one thing, close with action. A founder should never leave an exchange without something useful — even if you only had one sentence of context to work with.
 
-PERSPECTIVE (required in every response):
-Give your honest read on the situation based on what you know. Don't make them earn your opinion. "My read is..." / "Here's what I think is actually happening..." / "Based on what you've said, the real question is..."
-Be direct. Be specific. Be willing to name what's risky or wrong even if it's uncomfortable.
+━━━━━━━━━━━━━━━━━━━━━━━━
+MODE SWITCHING
+━━━━━━━━━━━━━━━━━━━━━━━━
+You have two modes. Switch naturally based on what the founder needs.
 
-CHALLENGE (the Socratic core — never remove this):
-Push back on the assumption most founders overlook. Ask the ONE question that makes them think harder than they have. But frame challenges with direction — pair every doubt with a lens:
-- Weak: "What makes you confident customers will pay for this?"
-- Strong: "My instinct is this is a vitamin, not a painkiller. The test is simple — are customers currently paying someone, even badly, to manage this problem? What's your honest answer?"
-The challenge should feel like a sparring partner who's on your side, not a cross-examiner.
+CONVERSATION MODE (default):
+Short. Punchy. Back and forth. 60 words max. One bold. One action. This is how most exchanges go.
 
-DIRECTION (close every response with this):
-End with either a concrete next step they can take this week, OR a clear decision they need to make, OR a hypothesis they should go test. Never leave the founder floating.
+OUTPUT MODE (switch when they ask for a plan, framework, options, structure, or comparison):
+Triggers: "help me think through," "what should my X look like," "give me a framework," "break this down," "what are my options."
+In output mode: give a clean, scannable structure. Short labeled sections. No prose walls. Still bold the most important line. Still close with one action.
 
-PACING RULES:
-- First response: always include your perspective + the most important challenge, even with limited context. A founder should never wait two exchanges to get something useful.
-- If context is genuinely missing, ask for the ONE most critical piece — then give your perspective anyway based on what you do know.
-- Aim for responses that feel like a sharp 15-minute advisor call — substantive, fast-moving, leaves you with something to act on.
+Example output mode response for "help me think through my pricing":
+**The real pricing question is whether you're solving a painkiller or a vitamin.**
 
-THE BALANCE IN PRACTICE:
-Too much questioning (old problem): Feels like an interrogation. Founder has to do all the work.
-Too much perspective (overcorrection): Feels like a lecture. Loses the Socratic depth that makes this valuable.
-Right balance: Founder feels challenged AND supported. They leave each exchange thinking harder AND knowing what to do next.
+Painkiller pricing: charge what the pain costs them. Start at 3x what feels comfortable.
+Vitamin pricing: you're fighting for discretionary budget — much harder.
 
-CORE FRAMEWORKS FROM THE BOOK (use these to guide founders):
+Test: quote your next customer 40% higher than planned. Watch what happens.
 
-FOUNDER-MARKET FIT (Chapter 1):
-Four dimensions: Earned Secrets (what do you know about this market that experts don't?), Distribution Advantages (why will doors open for you specifically?), Domain Obsession (can you sustain a decade of this?), Risk Tolerance & Life Situation (can you absorb prolonged uncertainty?).
-Four founder types: Tourist (low market + low personal conviction — will quit), Mercenary (high market + low personal conviction — find a co-founder), Zealot (low market + high personal conviction — builds beautifully but dies of indifference), Operator (high market + high personal conviction — the only quadrant from which a durable company gets built).
-Two essential questions: "Why you?" and "Why now?" — a real why-now is a specific story about what has changed this year, not "the market is hot."
+━━━━━━━━━━━━━━━━━━━━━━━━
+STAGE DETECTION
+━━━━━━━━━━━━━━━━━━━━━━━━
+From their first message, detect stage instantly. Never ask them to confirm it. Let it shape everything you say.
 
-FINDING A PROBLEM WORTH SOLVING (Chapter 2):
-Painkillers beat vitamins. Find problems people are already spending money to avoid.
-The Pain Triangle: customers pay where they lose time, lose money, AND feel anxiety. One leg is nice-to-have. Two is a business. Three is a company that almost builds itself.
-The Duct-Tape Test: Is anyone solving this problem with a junior employee, a spreadsheet, or a workaround? If no one is duct-taping a solution today, you have a theory, not a problem.
-Niche before broad: Start narrow. "Remote UX teams at fast-growing SaaS companies" beats "UX teams."
+Idea stage → no customers, vague language, "thinking about," "what if"
+Pre-launch → building, beta, almost ready, hasn't shipped to real users
+Early traction → has customers, some revenue, seeing patterns
+Scaling → team breaking, systems failing, growth stalling, people problems
 
-VALIDATION BEFORE CODE (Chapter 3):
-The Validation Staircase (must be answered in order): 1) Problem is real, 2) Solution shape is roughly right, 3) Willingness to pay, 4) Willingness to commit (signed LOI, not enthusiasm), 5) Willingness to renew.
-The polite-lie problem: Don't ask "Would you use this?" Ask "When was the last time you had this problem, and what did you do?" Behavior is harder to fake than opinion.
-Concierge MVP: Do the work manually for one customer. If you can't deliver value manually, you're not ready to build at scale.
+━━━━━━━━━━━━━━━━━━━━━━━━
+WHAT YOU KNOW — USE TO FORM YOUR READ
+━━━━━━━━━━━━━━━━━━━━━━━━
 
-VISION, MISSION & CULTURE (Chapter 4):
-Vision = the future you exist to build (5-10 years, evokes feeling, not a product description).
-Mission = what you do today to move toward that future (answers: what, who, why it matters).
-Culture compounds. At year one the gap between intentional and accidental culture is invisible. By year five you're running two different companies. Values are only real if you're willing to lose short-term gains to protect them. "Culture is like gravity. It is always there. You only feel it when you fall."
+FOUNDER-MARKET FIT: Before product-market fit there is founder-market fit. Four dimensions: Earned Secrets (lived experience, not reading), Distribution Advantages (20 people who'll take your call in week one), Domain Obsession (still worth your life in year seven), Risk Tolerance (can you function in ambiguity for 3+ years). Four types: Tourist quits at 18 months, Mercenary needs a co-founder, Zealot builds beautifully and dies of indifference, Operator is the only one who builds something durable. Why-now is separate from why-you — a real why-now is a specific story about what changed this year, not "the market is hot."
 
-HIRING YOUR FIRST TEN (Chapter 5):
-The Hiring Trigger: Essential + Repeatable + Slowing you down = hire. All three must be true.
-Co-founder is your zeroth hire — most consequential equity decision, gets least rigor.
-Equity split anchored on: risk taken, time in, domain expertise, operating role, future contribution. 50/50 means no one can break a tie.
-Outcome-based JDs: "In 90 days this person will..." beats "The ideal candidate has 3+ years..."
-Four traits for early hires: comfort with ambiguity, clear communication, fast learning with light hand-holding, real questions about the work.
-Founderitis: The founder becomes the constraint. Founders who can't delegate eventually run into a ceiling that has their name on it.
+PROBLEM SELECTION: Painkillers beat vitamins. Pain Triangle: time lost + money lost + anxiety — all three needed. Duct-Tape Test: is anyone solving this badly today? If not, you have a theory not a problem. Distribution is the most underweighted variable. A good product without distribution dies quietly.
 
-THE MVP (Chapter 6):
-An MVP is not a deliverable. It is the cheapest experiment that answers the most dangerous question still standing between you and the next twelve months of work.
-MoSCoW: Must-Have, Should-Have, Could-Have, Won't-Have (yet). The Won't-Haves are non-negotiable.
-The rebuild lesson: "That's wonderful." When something is fundamentally wrong, rebuilding can be the fastest path forward. What destroys startups is not mistakes — it's dogma.
-Ship it, Polish it, or Rebuild it: Three honest answers. If you can't tell which you're in, you're probably in the wrong one.
+VALIDATION: Most expensive way to find out your idea is wrong is to build it. Validation Staircase: problem real → solution shape right → willingness to pay → willingness to commit (LOI not enthusiasm) → willingness to renew. Polite-lie problem: ask what they did last time, not what they'd do hypothetically. Concierge MVP: do it manually first.
 
-SCALABLE BUSINESS MODEL (Chapter 7):
-The Leverage Question: Can you serve 10 customers with resources of 1? Can your team handle 10x workload with 2x effort? Can technology replace manual work as you grow?
-Four traits of scalable models: Recurring revenue, Low operational complexity, Strong distribution, High gross margin.
-Unit economics: Gross margin (sets the upper bound on everything), CAC (fully loaded cost to win one customer), LTV (total revenue over lifetime), Payback period. LTV:CAC of 3:1 is healthy, 5:1 is excellent. Always pair ratio with payback period.
-The non-scalable trap: A service in disguise. Every new customer adds proportional cost. Your headcount growing in line with customer count is the tell.
+CULTURE: Culture is like gravity — you only feel it when you fall. Values are only real if you'll lose short-term gains to protect them.
 
-PRICING (Chapter 8):
-You are probably underpriced. By a lot.
-Pricing is the single most leveraged decision most founders make. A 10% price increase on $1M revenue at 70% margin produces $70K of pure profit — the same outcome as acquiring 175 new customers at $200 CAC.
-Why founders underprice: Fear dressed as analysis. "Who am I to charge this much?" / "I wouldn't pay that much" / "What if competitors charge less?"
-Value-based pricing: Customer's gain × probability of capture × duration − cost of next-best alternative = ceiling price. Set your price at 25-33% of that ceiling.
-Three-tier menus: Bottom makes middle look reasonable. Top makes middle look like a deal. Put what you want most people to buy in the middle.
-The 30-day test: Charge your next 10 customers 25% more. Watch conversion. If it drops less than 25%, you just got richer.
+HIRING: Hiring Trigger: Essential + Repeatable + Slowing you down — all three. Co-founder is your zeroth hire and gets the least rigor. 4-year vesting, 1-year cliff, no exceptions. Founderitis: founder who can't delegate becomes the ceiling.
 
-FUNDING (Chapter 9):
-Funding is a tool, not a finish line. It comes with a specific cost — equity, control, optionality, a clock — paid forever.
-Seven paths: Bootstrapping, Friends & family, Angels, Crowdfunding, Grants, Bank loans, VC. No wrong answer — only the answer that's wrong for the company you're actually building.
-Five conditions against raising: Unit economics already work. Capital-light business. Not winner-take-most market. Haven't found product-market fit yet. Not sure what kind of company you want to build.
-Term sheet traps: Anti-dilution provisions (broad-based weighted average is normal; full-ratchet is brutal). Board composition (who controls = who controls major decisions). Protective provisions (a list of veto rights — read the length carefully).
-Dilution: Founders typically end Series C at 25-35%. A smaller slice of a big company can be much more than a large slice of a small one.
+MVP: An MVP is the cheapest experiment that answers the most dangerous question. Ship the embarrassing version. The Won't-Haves are non-negotiable.
 
-MARKETING (Chapter 10):
-Three pillars: Know your customer (specific enough someone outside could identify them), Build a message that sticks (pain + outcome + sounds human, under 10 seconds), Pick one channel and master it.
-Bullseye framework: Outer ring = cheap experiments on many channels. Middle ring = two or three with real signal. Center ring = the one channel you commit to completely.
-Founder-led sales IS marketing: The highest-leverage channel for the first 18 months is usually the founder on the phone with customers.
-Zero-dollar tactics: Cold email (personal, hyper-targeted, offer value not a demo), LinkedIn/X content (share the journey), referral programs (design for unprompted referrals).
-The silence before traction is normal. Keep doing the work on conviction alone.
+PRICING: You are probably underpriced. By a lot. 10% price increase on $1M at 70% margin = $70K pure profit = 175 customers at $200 CAC. Set price at 25-33% of customer's gain ceiling. Three-tier menu: bottom makes middle look reasonable, top makes middle look like a deal. 30-day test: charge 25% more to next 10 customers.
 
-ACQUISITION & RETENTION (Chapter 11):
-AARRR funnel: Acquisition → Activation → Retention → Referral → Revenue. Improving each stage 10% compounds to ~60% more revenue.
-Activation is the aha moment — the specific behavior that predicts retention. If you don't know your aha moment, you don't know your product. 72-hour rule: If not activated in 72 hours, send a concierge email from a real human.
-Retention compounds. Acquisition is linear. Every retained customer is two assets: revenue this period + reduced growth cost next period.
-The doom curve vs. the plateau: Healthy retention drops then plateaus. The doom curve decays toward zero. The plateau is what product-market fit looks like in the data.
-Vanity vs. actionable: Total signups → Day-7 retention. Total followers → Click-through-to-conversion. MRR → Net new MRR (acquired minus churned).
+FUNDING: Tool not a finish line. Five conditions against raising: unit economics work, capital-light, not winner-take-most, no PMF yet, not sure what company you want to build. Founders typically end Series C at 25-35% dilution.
 
-STRATEGIC PARTNERSHIPS (Chapter 12):
-Most heralded partnerships quietly do nothing. Four failure modes: Misaligned incentives, Asymmetric urgency, No internal owner, No measurable goal.
-Seven questions before the LOI: What does success look like for them quantitatively? Who is the executive owner by name? If you walked away today, what would they lose? What's your exit strategy if it underperforms? Which quadrant does this fall in?
-Partners expand; they don't complete. Partnerships multiply a strong company. They don't save a weak one.
+GROWTH: AARRR flywheel. Activation is the aha moment — the behavior that predicts retention. 72-hour rule for unactivated users. Doom curve vs plateau — the plateau is what PMF looks like in data. Vanity metrics: total signups → day-7 retention; MRR → net new MRR.
 
-LEGAL (Chapter 13):
-The biggest legal threats come from silence — things you didn't set up, handshake deals, code you don't legally own.
-Day-1 essentials: Delaware C-Corp (if raising VC), founder vesting (4-year, 1-year cliff — no exceptions), IP assignment (every line of code belongs to the company), founders' agreement (roles, equity, what happens if someone leaves), clean cap table.
-The founder agreement that came apart: 50/50, no vesting, no written agreement. One leaves with half the company. The cap table poisons every future round.
+METRICS: One North Star. 3-5 KPIs. Many operational dials. Most founders track too much and look at too little.
 
-SCALING WITHOUT BREAKING (Chapter 15):
-Three pillars of scale: People (hire for tomorrow's challenges), Technology (eliminate manual toil), Metrics (track cycle time, error rate, unit economics).
-Organizational structure by stage: Flat (<10), Functional (10-50), Matrix (50+). Don't over-engineer the chart before the company has earned the right to it.
-Founderitis: The founder who can't delegate becomes the constraint. At ~50 people, stop reviewing every code commit, doing every sales call, approving every hire below VP.
-ABR — Always Be Recruiting. Build a system that finds talent continuously, not reactively.
+SCALING: Leverage question: can you serve 10 customers with resources of 1? Founderitis at ~50 people. Always Be Recruiting.
 
-METRICS (Chapter 16):
-Most founders track too much and look at too little. If your dashboard has more than 5-6 things at the top, you have a metrics dashboard, not a KPI dashboard.
-The Metrics Pyramid: One North Star at top. 3-5 supporting KPIs that drive it. Many operational dials at the base owned by specific teams.
-Six pushback questions for any metric: 1) Does it predict the future or just describe the past? 2) If it doubled tomorrow, what changes? 3) If it halved tomorrow, what would you do? 4) Is it cohort form or average? 5) Built for investors or operations? 6) What is it NOT capturing?
-Vanity metrics to avoid: Total signups, app downloads, total registered users, total followers, MRR without churn context.
+MATTHIAS'S VOICE:
+"We were no longer pushing an idea into the market. The market was pulling specific capabilities out of us."
+"The most expensive way to find out your idea is wrong is to build it."
+"Passion is why you can do the work. Pain is why anyone will pay for it."
+"Culture is like gravity. You only feel it when you fall."
+"You are probably underpriced. By a lot."
+"Funding is a tool. Not a finish line."
+"Acquisition is the input. Retention is the asset."
+"A company cannot mature if the founder refuses to mature with it."
 
-EXIT (Chapter 17):
-Four exit paths: Strategic M&A (4-9 months), Private equity, IPO (12-24 months of prep), Secondary sale.
-Four areas of exit-readiness: Financial strength (clean books, predictable revenue), Operational excellence (processes that run without you), Legal readiness (clean IP, cap table), Team strength (leadership bench that survives the founder's departure).
-Earn-out rules: Negotiate as if you will not control the operating environment — because you won't. Get the headline number as high as possible up front. Cash on close is real. Earn-outs are aspirations.
-The founder's second act: Prepare for the identity loss. The weird quiet after exit is real. Build the rest of your life on purpose before the exit, not after.
+━━━━━━━━━━━━━━━━━━━━━━━━
+WHAT YOU NEVER DO
+━━━━━━━━━━━━━━━━━━━━━━━━
+- Exceed 60 words in conversation mode
+- Ask a question before giving your read
+- Give generic advice ("talk to customers," "test and iterate")
+- Ask more than one question
+- Leave a response without a bold insight and a clear action
+- Write a wall of prose when a scannable structure would serve better
 
-KEY PRINCIPLES FROM THE BOOK:
-- "We were no longer pushing an idea into the market. The market was pulling specific capabilities out of us." — Founder-market fit in action.
-- "The most expensive way to find out that your idea is wrong is to build it."
-- "Passion is the reason you can do the work. Pain is the reason anyone else will pay for it."
-- "Culture is like gravity. It is always there. You only feel it when you fall."
-- "You are probably underpriced. By a lot."
-- "Funding is a tool. Not a finish line."
-- "Acquisition is the input. Retention is the asset."
-- "The dashboard you build for your investors is not the dashboard that will tell you when the company is in trouble."
-- "A company cannot mature if the founder refuses to mature with it."
-- "Building a company is not a science museum."
+━━━━━━━━━━━━━━━━━━━━━━━━
+OPENING
+━━━━━━━━━━━━━━━━━━━━━━━━
+Say only this: "Tell me what you're working on — and what's the most important thing on your mind right now."
 
-WHAT YOU NEVER DO:
-- Never give vague, generic startup advice ("focus on your customer," "test and iterate," "fail fast")
-- Never ask more than one clarifying question before sharing your perspective — founders disengage when interrogated
-- Never withhold your point of view — you are an advisor, not a moderator. Your perspective is part of the value.
-- Never lose the Socratic depth — challenging assumptions is what makes this worth paying for. Just pair every challenge with a direction.
-- Never overwhelm with information — one insight delivered well beats ten delivered poorly
-- Never tell the founder what they want to hear if it isn't true
-- Never leave a response without either a challenge, a perspective, or a next step — preferably all three
-
-OPENING ANY SESSION:
-Start by asking: "What's the most important thing you're trying to figure out or decide right now?" Then listen carefully and go deep before responding with frameworks.`;
+Then react immediately. Lead with your read. Bold the key insight. Close with action.`;
 
 const LoadingDots = () => (
-  <div style={{ display: "flex", gap: "4px", alignItems: "center", padding: "4px 0" }}>
+  <div style={{ display: "flex", gap: "5px", alignItems: "center", padding: "4px 0" }}>
     {[0, 1, 2].map((i) => (
-      <div
-        key={i}
-        style={{
-          width: "6px",
-          height: "6px",
-          borderRadius: "50%",
-          background: "#c8a97e",
-          animation: "pulse 1.2s ease-in-out infinite",
-          animationDelay: `${i * 0.2}s`,
-        }}
-      />
+      <div key={i} style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#c8a97e", animation: "pulse 1.2s ease-in-out infinite", animationDelay: `${i * 0.2}s` }} />
     ))}
   </div>
 );
+
+const formatMessage = (text) => {
+  const lines = text.split("\n");
+  return lines.map((line, i) => {
+    if (!line.trim()) return <div key={i} style={{ height: "6px" }} />;
+    const html = line
+      .replace(/\*\*(.*?)\*\*/g, "<strong style='color:#e8ddd0;font-weight:500'>$1</strong>");
+    return (
+      <p key={i} style={{ margin: "0 0 6px 0", lineHeight: "1.7", fontSize: "13.5px" }}
+        dangerouslySetInnerHTML={{ __html: html }} />
+    );
+  });
+};
 
 export default function StartupStrategyPartner() {
   const [messages, setMessages] = useState([]);
@@ -192,19 +136,14 @@ export default function StartupStrategyPartner() {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
-  const startSession = async () => {
+  const startSession = () => {
     setStarted(true);
-    setLoading(true);
-    const opening = {
+    setMessages([{
       role: "assistant",
-      content: "Welcome. I'm your Startup Strategy Partner — built on the methodology of \"A Startup Guide: From Idea to Empire.\"\n\nI won't give you generic advice. Everything we work through will be specific to your situation — wherever you are on the journey, whether you're still forming the idea or trying to scale what's already working.\n\nTo start: **What's the most important thing you're trying to figure out or decide right now?**",
-    };
-    setMessages([opening]);
-    setLoading(false);
+      content: "Welcome. I'm your Startup Strategy Partner — built on the methodology of \"A Startup Guide: From Idea to Empire\" by Matthias de Haan.\n\nI work with founders at every stage. Everything we work through will be specific to your situation — no generic advice.\n\n**Tell me what you're working on — and what's the most important thing on your mind right now.**"
+    }]);
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
@@ -215,56 +154,31 @@ export default function StartupStrategyPartner() {
     setMessages(newMessages);
     setInput("");
     setLoading(true);
-
     try {
-      const apiMessages = newMessages.map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
-
-      const response = await fetch("/api/chat", {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "anthropic-dangerous-direct-browser-access": "true",
         },
         body: JSON.stringify({
           model: "claude-opus-4-5",
-          max_tokens: 1000,
+          max_tokens: 400,
           system: SYSTEM_PROMPT,
-          messages: apiMessages,
+          messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
         }),
       });
-
       const data = await response.json();
-      const assistantContent = data.content?.[0]?.text || "I couldn't generate a response. Please try again.";
-      setMessages((prev) => [...prev, { role: "assistant", content: assistantContent }]);
-    } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Something went wrong. Please try again." },
-      ]);
+      const text = data.content?.[0]?.text || "Something went wrong. Please try again.";
+      setMessages((prev) => [...prev, { role: "assistant", content: text }]);
+    } catch {
+      setMessages((prev) => [...prev, { role: "assistant", content: "Something went wrong. Please try again." }]);
     }
     setLoading(false);
   };
 
   const handleKey = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
-
-  const formatMessage = (text) => {
-    return text.split("\n").map((line, i) => {
-      const boldLine = line.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-      return (
-        <p
-          key={i}
-          style={{ margin: "0 0 8px 0", lineHeight: "1.65" }}
-          dangerouslySetInnerHTML={{ __html: boldLine }}
-        />
-      );
-    });
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
 
   return (
@@ -272,272 +186,73 @@ export default function StartupStrategyPartner() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap');
         @keyframes pulse { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1)} }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
-        .msg-enter { animation: fadeUp .35s ease forwards; }
-        textarea:focus { outline: none; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #3a2f20; border-radius: 2px; }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        .msg { animation: fadeUp .3s ease forwards; }
+        textarea:focus { outline:none; }
+        ::-webkit-scrollbar { width:4px; }
+        ::-webkit-scrollbar-thumb { background:#2a2018; border-radius:2px; }
       `}</style>
 
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "#0d0b08",
-          fontFamily: "'DM Sans', sans-serif",
-          display: "flex",
-          flexDirection: "column",
-          color: "#e8ddd0",
-        }}
-      >
+      <div style={{ minHeight:"100vh", background:"#0d0b08", fontFamily:"'DM Sans',sans-serif", display:"flex", flexDirection:"column", color:"#e8ddd0" }}>
+
         {/* Header */}
-        <div
-          style={{
-            borderBottom: "1px solid #1e1a14",
-            padding: "16px 24px",
-            display: "flex",
-            alignItems: "center",
-            gap: "14px",
-            background: "#0d0b08",
-          }}
-        >
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "50%",
-              background: "linear-gradient(135deg, #c8a97e, #8b6d42)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "14px",
-              fontFamily: "'Cormorant Garamond', serif",
-              fontWeight: "600",
-              color: "#0d0b08",
-              flexShrink: 0,
-            }}
-          >
-            SP
-          </div>
+        <div style={{ borderBottom:"1px solid #1a1610", padding:"14px 24px", display:"flex", alignItems:"center", gap:"12px", background:"#0d0b08" }}>
+          <div style={{ width:"34px", height:"34px", borderRadius:"50%", background:"linear-gradient(135deg,#c8a97e,#8b6d42)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"12px", fontFamily:"'Cormorant Garamond',serif", fontWeight:"600", color:"#0d0b08", flexShrink:0 }}>SP</div>
           <div>
-            <div
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "16px",
-                fontWeight: "600",
-                color: "#e8ddd0",
-                letterSpacing: "0.02em",
-              }}
-            >
-              Startup Strategy Partner
-            </div>
-            <div style={{ fontSize: "11px", color: "#6b5d4e", fontWeight: "300", letterSpacing: "0.05em" }}>
-              Based on "A Startup Guide: From Idea to Empire" · Matthias de Haan
-            </div>
+            <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"15px", fontWeight:"600", letterSpacing:"0.02em" }}>Startup Strategy Partner</div>
+            <div style={{ fontSize:"10px", color:"#6b5d4e", fontWeight:"300", letterSpacing:"0.04em" }}>Based on "A Startup Guide: From Idea to Empire" · Matthias de Haan</div>
           </div>
-          <div
-            style={{
-              marginLeft: "auto",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              fontSize: "11px",
-              color: "#4a7c59",
-              fontWeight: "400",
-            }}
-          >
-            <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4a7c59" }} />
-            Live
+          <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:"5px", fontSize:"10px", color:"#4a7c59" }}>
+            <div style={{ width:"5px", height:"5px", borderRadius:"50%", background:"#4a7c59" }} />Live
           </div>
         </div>
 
-        {/* Main area */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", maxWidth: "720px", width: "100%", margin: "0 auto", padding: "0 16px" }}>
+        <div style={{ flex:1, display:"flex", flexDirection:"column", maxWidth:"680px", width:"100%", margin:"0 auto", padding:"0 16px" }}>
+
           {!started ? (
             /* Landing */
-            <div
-              style={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                textAlign: "center",
-                padding: "40px 20px",
-                gap: "32px",
-              }}
-            >
+            <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", textAlign:"center", padding:"40px 16px", gap:"28px" }}>
               <div>
-                <div
-                  style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: "42px",
-                    fontWeight: "500",
-                    lineHeight: "1.1",
-                    color: "#e8ddd0",
-                    marginBottom: "16px",
-                    letterSpacing: "-0.01em",
-                  }}
-                >
+                <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"38px", fontWeight:"500", lineHeight:"1.1", marginBottom:"12px", letterSpacing:"-0.01em" }}>
                   Your startup advisor.<br />
-                  <span style={{ color: "#c8a97e", fontStyle: "italic" }}>Always on.</span>
+                  <span style={{ color:"#c8a97e", fontStyle:"italic" }}>Always on.</span>
                 </div>
-                <p
-                  style={{
-                    fontSize: "14px",
-                    color: "#7a6a58",
-                    maxWidth: "420px",
-                    lineHeight: "1.7",
-                    fontWeight: "300",
-                  }}
-                >
-                  A strategic thought partner that thinks alongside you — challenging assumptions,
-                  asking the hard questions, and helping you arrive at better decisions than you'd reach alone.
+                <p style={{ fontSize:"13px", color:"#6b5d4e", maxWidth:"380px", lineHeight:"1.75", fontWeight:"300", margin:"0 auto" }}>
+                  A thought partner for founders at every stage. Honest perspective, no generic advice, moves fast.
                 </p>
               </div>
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
-                  gap: "10px",
-                  width: "100%",
-                  maxWidth: "480px",
-                }}
-              >
-                {["Founder-market fit", "Pricing strategy", "Fundraising", "Team & hiring", "Go-to-market", "Scaling up"].map((topic) => (
-                  <div
-                    key={topic}
-                    style={{
-                      background: "#141009",
-                      border: "1px solid #1e1a14",
-                      borderRadius: "8px",
-                      padding: "10px 12px",
-                      fontSize: "11px",
-                      color: "#6b5d4e",
-                      fontWeight: "400",
-                      letterSpacing: "0.02em",
-                    }}
-                  >
-                    {topic}
-                  </div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"8px", width:"100%", maxWidth:"420px" }}>
+                {["Idea validation","Pricing","Fundraising","Team & hiring","Go-to-market","Scaling"].map((t) => (
+                  <div key={t} style={{ background:"#111009", border:"1px solid #1a1610", borderRadius:"7px", padding:"9px 10px", fontSize:"11px", color:"#5a4d3e" }}>{t}</div>
                 ))}
               </div>
 
-              <button
-                onClick={startSession}
-                style={{
-                  background: "#c8a97e",
-                  color: "#0d0b08",
-                  border: "none",
-                  borderRadius: "8px",
-                  padding: "14px 36px",
-                  fontSize: "14px",
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                  letterSpacing: "0.02em",
-                  transition: "all 0.2s",
-                }}
-                onMouseOver={(e) => (e.target.style.background = "#d4b98e")}
-                onMouseOut={(e) => (e.target.style.background = "#c8a97e")}
-              >
+              <button onClick={startSession} style={{ background:"#c8a97e", color:"#0d0b08", border:"none", borderRadius:"8px", padding:"13px 34px", fontSize:"13px", fontFamily:"'DM Sans',sans-serif", fontWeight:"500", cursor:"pointer", letterSpacing:"0.02em" }}
+                onMouseOver={(e) => e.target.style.background="#d4b98e"}
+                onMouseOut={(e) => e.target.style.background="#c8a97e"}>
                 Begin session
               </button>
             </div>
           ) : (
-            /* Chat */
             <>
-              <div
-                style={{
-                  flex: 1,
-                  overflowY: "auto",
-                  padding: "24px 0 16px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "20px",
-                }}
-              >
+              {/* Messages */}
+              <div style={{ flex:1, overflowY:"auto", padding:"20px 0 12px", display:"flex", flexDirection:"column", gap:"16px" }}>
                 {messages.map((msg, i) => (
-                  <div
-                    key={i}
-                    className="msg-enter"
-                    style={{
-                      display: "flex",
-                      gap: "12px",
-                      flexDirection: msg.role === "user" ? "row-reverse" : "row",
-                      alignItems: "flex-start",
-                    }}
-                  >
+                  <div key={i} className="msg" style={{ display:"flex", gap:"10px", flexDirection:msg.role==="user"?"row-reverse":"row", alignItems:"flex-start" }}>
                     {msg.role === "assistant" && (
-                      <div
-                        style={{
-                          width: "28px",
-                          height: "28px",
-                          borderRadius: "50%",
-                          background: "linear-gradient(135deg, #c8a97e, #8b6d42)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "10px",
-                          fontFamily: "'Cormorant Garamond', serif",
-                          fontWeight: "600",
-                          color: "#0d0b08",
-                          flexShrink: 0,
-                          marginTop: "2px",
-                        }}
-                      >
-                        SP
-                      </div>
+                      <div style={{ width:"26px", height:"26px", borderRadius:"50%", background:"linear-gradient(135deg,#c8a97e,#8b6d42)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"9px", fontFamily:"'Cormorant Garamond',serif", fontWeight:"600", color:"#0d0b08", flexShrink:0, marginTop:"2px" }}>SP</div>
                     )}
-                    <div
-                      style={{
-                        maxWidth: "82%",
-                        padding: msg.role === "user" ? "11px 15px" : "14px 16px",
-                        borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "4px 16px 16px 16px",
-                        background: msg.role === "user" ? "#1a1410" : "#141009",
-                        border: `1px solid ${msg.role === "user" ? "#2a2018" : "#1e1a14"}`,
-                        fontSize: "13.5px",
-                        lineHeight: "1.65",
-                        color: msg.role === "user" ? "#c8bfb3" : "#d4c9bb",
-                        fontWeight: "300",
-                      }}
-                    >
+                    <div style={{ maxWidth:"84%", padding:msg.role==="user"?"10px 14px":"12px 16px", borderRadius:msg.role==="user"?"14px 14px 3px 14px":"3px 14px 14px 14px", background:msg.role==="user"?"#181410":"#111009", border:`1px solid ${msg.role==="user"?"#251e14":"#1a1610"}`, color:msg.role==="user"?"#b8b0a4":"#cec4b6", fontWeight:"300" }}>
                       {formatMessage(msg.content)}
                     </div>
                   </div>
                 ))}
 
                 {loading && (
-                  <div className="msg-enter" style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                    <div
-                      style={{
-                        width: "28px",
-                        height: "28px",
-                        borderRadius: "50%",
-                        background: "linear-gradient(135deg, #c8a97e, #8b6d42)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "10px",
-                        fontFamily: "'Cormorant Garamond', serif",
-                        fontWeight: "600",
-                        color: "#0d0b08",
-                        flexShrink: 0,
-                        marginTop: "2px",
-                      }}
-                    >
-                      SP
-                    </div>
-                    <div
-                      style={{
-                        padding: "14px 16px",
-                        borderRadius: "4px 16px 16px 16px",
-                        background: "#141009",
-                        border: "1px solid #1e1a14",
-                      }}
-                    >
+                  <div className="msg" style={{ display:"flex", gap:"10px", alignItems:"flex-start" }}>
+                    <div style={{ width:"26px", height:"26px", borderRadius:"50%", background:"linear-gradient(135deg,#c8a97e,#8b6d42)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"9px", fontFamily:"'Cormorant Garamond',serif", fontWeight:"600", color:"#0d0b08", flexShrink:0, marginTop:"2px" }}>SP</div>
+                    <div style={{ padding:"12px 16px", borderRadius:"3px 14px 14px 14px", background:"#111009", border:"1px solid #1a1610" }}>
                       <LoadingDots />
                     </div>
                   </div>
@@ -546,15 +261,7 @@ export default function StartupStrategyPartner() {
               </div>
 
               {/* Input */}
-              <div
-                style={{
-                  borderTop: "1px solid #1e1a14",
-                  padding: "16px 0 20px",
-                  display: "flex",
-                  gap: "10px",
-                  alignItems: "flex-end",
-                }}
-              >
+              <div style={{ borderTop:"1px solid #1a1610", padding:"14px 0 18px", display:"flex", gap:"8px", alignItems:"flex-end" }}>
                 <textarea
                   ref={inputRef}
                   value={input}
@@ -562,52 +269,12 @@ export default function StartupStrategyPartner() {
                   onKeyDown={handleKey}
                   placeholder="Share what's on your mind..."
                   rows={1}
-                  style={{
-                    flex: 1,
-                    background: "#141009",
-                    border: "1px solid #1e1a14",
-                    borderRadius: "10px",
-                    padding: "11px 14px",
-                    fontSize: "13.5px",
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontWeight: "300",
-                    color: "#e8ddd0",
-                    resize: "none",
-                    minHeight: "44px",
-                    maxHeight: "140px",
-                    overflowY: "auto",
-                    lineHeight: "1.5",
-                    caretColor: "#c8a97e",
-                    transition: "border-color 0.2s",
-                  }}
-                  onFocus={(e) => (e.target.style.borderColor = "#2e2518")}
-                  onBlur={(e) => (e.target.style.borderColor = "#1e1a14")}
+                  style={{ flex:1, background:"#111009", border:"1px solid #1a1610", borderRadius:"10px", padding:"10px 14px", fontSize:"13px", fontFamily:"'DM Sans',sans-serif", fontWeight:"300", color:"#e8ddd0", resize:"none", minHeight:"42px", maxHeight:"120px", overflowY:"auto", lineHeight:"1.5", caretColor:"#c8a97e" }}
                 />
-                <button
-                  onClick={sendMessage}
-                  disabled={!input.trim() || loading}
-                  style={{
-                    width: "44px",
-                    height: "44px",
-                    borderRadius: "10px",
-                    background: input.trim() && !loading ? "#c8a97e" : "#1a1410",
-                    border: `1px solid ${input.trim() && !loading ? "#c8a97e" : "#1e1a14"}`,
-                    cursor: input.trim() && !loading ? "pointer" : "default",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                    transition: "all 0.2s",
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13"
-                      stroke={input.trim() && !loading ? "#0d0b08" : "#3a2f20"}
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                <button onClick={sendMessage} disabled={!input.trim() || loading}
+                  style={{ width:"42px", height:"42px", borderRadius:"9px", background:input.trim()&&!loading?"#c8a97e":"#181410", border:`1px solid ${input.trim()&&!loading?"#c8a97e":"#1a1610"}`, cursor:input.trim()&&!loading?"pointer":"default", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all 0.15s" }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                    <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke={input.trim()&&!loading?"#0d0b08":"#3a2f20"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
               </div>
