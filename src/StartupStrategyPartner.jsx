@@ -107,36 +107,52 @@ Say only this: "Tell me what you're working on — and what's the most important
 
 Then react immediately. Lead with your read. Bold the key insight. Close with action.`;
 
+// ── Colour tokens from the book cover ──────────────────────────────
+const C = {
+  cream:      "#F2EDE4",   // background
+  creamer:    "#EDE7DC",   // message bubbles, subtle areas
+  green:      "#1B4332",   // primary text, buttons, accents
+  greenMid:   "#2D6A4F",   // secondary green
+  greenLight: "#40916C",   // tertiary / hover
+  ink:        "#2C2C2C",   // body text
+  muted:      "#6B7A6B",   // placeholder, meta text
+  border:     "#D6CFBF",   // dividers
+  white:      "#FFFFFF",
+};
+
 const LoadingDots = () => (
-  <div style={{ display: "flex", gap: "5px", alignItems: "center", padding: "4px 0" }}>
-    {[0, 1, 2].map((i) => (
-      <div key={i} style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#c8a97e", animation: "pulse 1.2s ease-in-out infinite", animationDelay: `${i * 0.2}s` }} />
+  <div style={{ display:"flex", gap:"5px", alignItems:"center", padding:"6px 2px" }}>
+    {[0,1,2].map(i => (
+      <div key={i} style={{ width:"6px", height:"6px", borderRadius:"50%", background:C.greenMid, animation:"pulse 1.2s ease-in-out infinite", animationDelay:`${i*0.2}s` }} />
     ))}
   </div>
 );
 
-const formatMessage = (text) => {
-  const lines = text.split("\n");
-  return lines.map((line, i) => {
-    if (!line.trim()) return <div key={i} style={{ height: "6px" }} />;
-    const html = line
-      .replace(/\*\*(.*?)\*\*/g, "<strong style='color:#e8ddd0;font-weight:500'>$1</strong>");
+const formatMessage = (text, isUser) => {
+  return text.split("\n").map((line, i) => {
+    if (!line.trim()) return <div key={i} style={{ height:"5px" }} />;
+    const html = line.replace(
+      /\*\*(.*?)\*\*/g,
+      `<strong style="color:${isUser ? C.cream : C.green};font-weight:600">$1</strong>`
+    );
     return (
-      <p key={i} style={{ margin: "0 0 6px 0", lineHeight: "1.7", fontSize: "13.5px" }}
-        dangerouslySetInnerHTML={{ __html: html }} />
+      <p key={i}
+        style={{ margin:"0 0 5px 0", lineHeight:"1.72", fontSize:"14px", color: isUser ? C.creamer : C.ink }}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
     );
   });
 };
 
 export default function StartupStrategyPartner() {
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [started, setStarted] = useState(false);
-  const messagesEndRef = useRef(null);
-  const inputRef = useRef(null);
+  const [input, setInput]       = useState("");
+  const [loading, setLoading]   = useState(false);
+  const [started, setStarted]   = useState(false);
+  const messagesEndRef           = useRef(null);
+  const inputRef                 = useRef(null);
 
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior:"smooth" }); }, [messages, loading]);
 
   const startSession = () => {
     setStarted(true);
@@ -149,110 +165,152 @@ export default function StartupStrategyPartner() {
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
-    const userMsg = { role: "user", content: input.trim() };
+    const userMsg   = { role:"user", content:input.trim() };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
     try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      const res  = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "anthropic-dangerous-direct-browser-access": "true",
         },
         body: JSON.stringify({
-          model: "claude-opus-4-5",
+          model:      "claude-opus-4-5",
           max_tokens: 400,
-          system: SYSTEM_PROMPT,
-          messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
+          system:     SYSTEM_PROMPT,
+          messages:   newMessages.map(m => ({ role:m.role, content:m.content })),
         }),
       });
-      const data = await response.json();
+      const data = await res.json();
       const text = data.content?.[0]?.text || "Something went wrong. Please try again.";
-      setMessages((prev) => [...prev, { role: "assistant", content: text }]);
+      setMessages(prev => [...prev, { role:"assistant", content:text }]);
     } catch {
-      setMessages((prev) => [...prev, { role: "assistant", content: "Something went wrong. Please try again." }]);
+      setMessages(prev => [...prev, { role:"assistant", content:"Something went wrong. Please try again." }]);
     }
     setLoading(false);
   };
 
-  const handleKey = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  };
+  const handleKey = e => { if (e.key==="Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap');
-        @keyframes pulse { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1)} }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-        .msg { animation: fadeUp .3s ease forwards; }
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500&display=swap');
+        @keyframes pulse   { 0%,100%{opacity:.25;transform:scale(.75)} 50%{opacity:1;transform:scale(1)} }
+        @keyframes fadeUp  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        .msg { animation: fadeUp .28s ease forwards; }
         textarea:focus { outline:none; }
-        ::-webkit-scrollbar { width:4px; }
-        ::-webkit-scrollbar-thumb { background:#2a2018; border-radius:2px; }
+        ::-webkit-scrollbar       { width:4px; }
+        ::-webkit-scrollbar-track { background:transparent; }
+        ::-webkit-scrollbar-thumb { background:${C.border}; border-radius:2px; }
+        button:hover { opacity:.88; }
       `}</style>
 
-      <div style={{ minHeight:"100vh", background:"#0d0b08", fontFamily:"'DM Sans',sans-serif", display:"flex", flexDirection:"column", color:"#e8ddd0" }}>
+      <div style={{ minHeight:"100vh", background:C.cream, fontFamily:"'Inter',sans-serif", display:"flex", flexDirection:"column", color:C.ink }}>
 
-        {/* Header */}
-        <div style={{ borderBottom:"1px solid #1a1610", padding:"14px 24px", display:"flex", alignItems:"center", gap:"12px", background:"#0d0b08" }}>
-          <div style={{ width:"34px", height:"34px", borderRadius:"50%", background:"linear-gradient(135deg,#c8a97e,#8b6d42)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"12px", fontFamily:"'Cormorant Garamond',serif", fontWeight:"600", color:"#0d0b08", flexShrink:0 }}>SP</div>
+        {/* ── Header ────────────────────────────────────────────── */}
+        <header style={{ borderBottom:`1px solid ${C.border}`, padding:"14px 28px", display:"flex", alignItems:"center", gap:"14px", background:C.cream }}>
+          {/* Monogram */}
+          <div style={{ width:"36px", height:"36px", borderRadius:"50%", border:`1.5px solid ${C.green}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <span style={{ fontFamily:"'Playfair Display',serif", fontSize:"13px", fontWeight:"600", color:C.green, letterSpacing:"0.5px" }}>M</span>
+          </div>
           <div>
-            <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"15px", fontWeight:"600", letterSpacing:"0.02em" }}>Startup Strategy Partner</div>
-            <div style={{ fontSize:"10px", color:"#6b5d4e", fontWeight:"300", letterSpacing:"0.04em" }}>Based on "A Startup Guide: From Idea to Empire" · Matthias de Haan</div>
+            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"15px", fontWeight:"600", color:C.green, letterSpacing:"0.01em" }}>
+              It started with a feeling.
+            </div>
+            <div style={{ fontSize:"10px", color:C.muted, fontWeight:"400", letterSpacing:"0.06em", textTransform:"uppercase", marginTop:"1px" }}>
+              Matthias de Haan · Founder · Operator · Builder
+            </div>
           </div>
-          <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:"5px", fontSize:"10px", color:"#4a7c59" }}>
-            <div style={{ width:"5px", height:"5px", borderRadius:"50%", background:"#4a7c59" }} />Live
+          <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:"6px", fontSize:"10px", color:C.greenLight, letterSpacing:"0.04em", textTransform:"uppercase" }}>
+            <div style={{ width:"5px", height:"5px", borderRadius:"50%", background:C.greenLight }} />
+            Live
           </div>
-        </div>
+        </header>
 
-        <div style={{ flex:1, display:"flex", flexDirection:"column", maxWidth:"680px", width:"100%", margin:"0 auto", padding:"0 16px" }}>
+        {/* ── Content area ──────────────────────────────────────── */}
+        <div style={{ flex:1, display:"flex", flexDirection:"column", maxWidth:"700px", width:"100%", margin:"0 auto", padding:"0 20px" }}>
 
           {!started ? (
-            /* Landing */
-            <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", textAlign:"center", padding:"40px 16px", gap:"28px" }}>
+            /* ── Landing ───────────────────────────────────────── */
+            <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", textAlign:"center", padding:"48px 16px", gap:"36px" }}>
+
+              {/* Hero text */}
               <div>
-                <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"38px", fontWeight:"500", lineHeight:"1.1", marginBottom:"12px", letterSpacing:"-0.01em" }}>
-                  Your startup advisor.<br />
-                  <span style={{ color:"#c8a97e", fontStyle:"italic" }}>Always on.</span>
+                <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"13px", fontStyle:"italic", color:C.greenMid, letterSpacing:"0.02em", marginBottom:"8px" }}>
+                  It started with a feeling.
                 </div>
-                <p style={{ fontSize:"13px", color:"#6b5d4e", maxWidth:"380px", lineHeight:"1.75", fontWeight:"300", margin:"0 auto" }}>
-                  A thought partner for founders at every stage. Honest perspective, no generic advice, moves fast.
+                <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"44px", fontWeight:"700", lineHeight:"1.05", color:C.green, letterSpacing:"-0.01em", marginBottom:"16px", textTransform:"uppercase" }}>
+                  WITH A<br />FEELING.
+                </div>
+                <p style={{ fontSize:"13px", color:C.muted, maxWidth:"360px", lineHeight:"1.8", fontWeight:"300", margin:"0 auto" }}>
+                  The founder's field manual — from first idea to exit.<br />Your strategy partner, always on.
                 </p>
               </div>
 
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"8px", width:"100%", maxWidth:"420px" }}>
-                {["Idea validation","Pricing","Fundraising","Team & hiring","Go-to-market","Scaling"].map((t) => (
-                  <div key={t} style={{ background:"#111009", border:"1px solid #1a1610", borderRadius:"7px", padding:"9px 10px", fontSize:"11px", color:"#5a4d3e" }}>{t}</div>
+              {/* Topic pills */}
+              <div style={{ display:"flex", flexWrap:"wrap", gap:"8px", justifyContent:"center", maxWidth:"420px" }}>
+                {["Idea validation","Pricing","Fundraising","Team & hiring","Go-to-market","Scaling"].map(t => (
+                  <div key={t} style={{ background:"transparent", border:`1px solid ${C.border}`, borderRadius:"20px", padding:"6px 14px", fontSize:"11px", color:C.muted, letterSpacing:"0.04em", textTransform:"uppercase" }}>{t}</div>
                 ))}
               </div>
 
-              <button onClick={startSession} style={{ background:"#c8a97e", color:"#0d0b08", border:"none", borderRadius:"8px", padding:"13px 34px", fontSize:"13px", fontFamily:"'DM Sans',sans-serif", fontWeight:"500", cursor:"pointer", letterSpacing:"0.02em" }}
-                onMouseOver={(e) => e.target.style.background="#d4b98e"}
-                onMouseOut={(e) => e.target.style.background="#c8a97e"}>
+              {/* CTA */}
+              <button onClick={startSession}
+                style={{ background:C.green, color:C.cream, border:"none", borderRadius:"4px", padding:"14px 40px", fontSize:"12px", fontFamily:"'Inter',sans-serif", fontWeight:"500", cursor:"pointer", letterSpacing:"0.1em", textTransform:"uppercase", transition:"opacity .15s" }}>
                 Begin session
               </button>
+
+              {/* Book credit */}
+              <div style={{ borderTop:`1px solid ${C.border}`, paddingTop:"20px", width:"100%", maxWidth:"280px" }}>
+                <div style={{ fontSize:"10px", color:C.muted, letterSpacing:"0.08em", textTransform:"uppercase" }}>
+                  Matthias de Haan
+                </div>
+                <div style={{ fontSize:"9px", color:C.border, letterSpacing:"0.06em", textTransform:"uppercase", marginTop:"3px" }}>
+                  Founder · Operator · Builder
+                </div>
+              </div>
             </div>
+
           ) : (
+            /* ── Chat ──────────────────────────────────────────── */
             <>
-              {/* Messages */}
-              <div style={{ flex:1, overflowY:"auto", padding:"20px 0 12px", display:"flex", flexDirection:"column", gap:"16px" }}>
+              <div style={{ flex:1, overflowY:"auto", padding:"24px 0 12px", display:"flex", flexDirection:"column", gap:"20px" }}>
+
                 {messages.map((msg, i) => (
-                  <div key={i} className="msg" style={{ display:"flex", gap:"10px", flexDirection:msg.role==="user"?"row-reverse":"row", alignItems:"flex-start" }}>
-                    {msg.role === "assistant" && (
-                      <div style={{ width:"26px", height:"26px", borderRadius:"50%", background:"linear-gradient(135deg,#c8a97e,#8b6d42)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"9px", fontFamily:"'Cormorant Garamond',serif", fontWeight:"600", color:"#0d0b08", flexShrink:0, marginTop:"2px" }}>SP</div>
+                  <div key={i} className="msg"
+                    style={{ display:"flex", gap:"10px", flexDirection:msg.role==="user"?"row-reverse":"row", alignItems:"flex-start" }}>
+
+                    {/* Avatar — assistant only */}
+                    {msg.role==="assistant" && (
+                      <div style={{ width:"28px", height:"28px", borderRadius:"50%", border:`1.5px solid ${C.green}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:"2px" }}>
+                        <span style={{ fontFamily:"'Playfair Display',serif", fontSize:"11px", fontWeight:"600", color:C.green }}>M</span>
+                      </div>
                     )}
-                    <div style={{ maxWidth:"84%", padding:msg.role==="user"?"10px 14px":"12px 16px", borderRadius:msg.role==="user"?"14px 14px 3px 14px":"3px 14px 14px 14px", background:msg.role==="user"?"#181410":"#111009", border:`1px solid ${msg.role==="user"?"#251e14":"#1a1610"}`, color:msg.role==="user"?"#b8b0a4":"#cec4b6", fontWeight:"300" }}>
-                      {formatMessage(msg.content)}
+
+                    {/* Bubble */}
+                    <div style={{
+                      maxWidth:"80%",
+                      padding: msg.role==="user" ? "10px 15px" : "14px 18px",
+                      borderRadius: msg.role==="user" ? "16px 16px 4px 16px" : "4px 16px 16px 16px",
+                      background: msg.role==="user" ? C.green : C.white,
+                      border: msg.role==="user" ? "none" : `1px solid ${C.border}`,
+                      boxShadow: msg.role==="user" ? "none" : "0 1px 4px rgba(0,0,0,0.04)",
+                    }}>
+                      {formatMessage(msg.content, msg.role==="user")}
                     </div>
                   </div>
                 ))}
 
                 {loading && (
                   <div className="msg" style={{ display:"flex", gap:"10px", alignItems:"flex-start" }}>
-                    <div style={{ width:"26px", height:"26px", borderRadius:"50%", background:"linear-gradient(135deg,#c8a97e,#8b6d42)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"9px", fontFamily:"'Cormorant Garamond',serif", fontWeight:"600", color:"#0d0b08", flexShrink:0, marginTop:"2px" }}>SP</div>
-                    <div style={{ padding:"12px 16px", borderRadius:"3px 14px 14px 14px", background:"#111009", border:"1px solid #1a1610" }}>
+                    <div style={{ width:"28px", height:"28px", borderRadius:"50%", border:`1.5px solid ${C.green}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:"2px" }}>
+                      <span style={{ fontFamily:"'Playfair Display',serif", fontSize:"11px", fontWeight:"600", color:C.green }}>M</span>
+                    </div>
+                    <div style={{ padding:"12px 16px", borderRadius:"4px 16px 16px 16px", background:C.white, border:`1px solid ${C.border}`, boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
                       <LoadingDots />
                     </div>
                   </div>
@@ -260,21 +318,25 @@ export default function StartupStrategyPartner() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Input */}
-              <div style={{ borderTop:"1px solid #1a1610", padding:"14px 0 18px", display:"flex", gap:"8px", alignItems:"flex-end" }}>
+              {/* ── Input bar ─────────────────────────────────── */}
+              <div style={{ borderTop:`1px solid ${C.border}`, padding:"14px 0 20px", display:"flex", gap:"10px", alignItems:"flex-end" }}>
                 <textarea
                   ref={inputRef}
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={e => setInput(e.target.value)}
                   onKeyDown={handleKey}
                   placeholder="Share what's on your mind..."
                   rows={1}
-                  style={{ flex:1, background:"#111009", border:"1px solid #1a1610", borderRadius:"10px", padding:"10px 14px", fontSize:"13px", fontFamily:"'DM Sans',sans-serif", fontWeight:"300", color:"#e8ddd0", resize:"none", minHeight:"42px", maxHeight:"120px", overflowY:"auto", lineHeight:"1.5", caretColor:"#c8a97e" }}
+                  style={{ flex:1, background:C.white, border:`1px solid ${C.border}`, borderRadius:"8px", padding:"11px 14px", fontSize:"13px", fontFamily:"'Inter',sans-serif", fontWeight:"300", color:C.ink, resize:"none", minHeight:"44px", maxHeight:"120px", overflowY:"auto", lineHeight:"1.55", caretColor:C.green, transition:"border-color .15s", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}
+                  onFocus={e  => e.target.style.borderColor = C.greenMid}
+                  onBlur={e   => e.target.style.borderColor = C.border}
                 />
                 <button onClick={sendMessage} disabled={!input.trim() || loading}
-                  style={{ width:"42px", height:"42px", borderRadius:"9px", background:input.trim()&&!loading?"#c8a97e":"#181410", border:`1px solid ${input.trim()&&!loading?"#c8a97e":"#1a1610"}`, cursor:input.trim()&&!loading?"pointer":"default", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all 0.15s" }}>
+                  style={{ width:"44px", height:"44px", borderRadius:"8px", background: input.trim()&&!loading ? C.green : C.creamer, border:`1px solid ${input.trim()&&!loading ? C.green : C.border}`, cursor: input.trim()&&!loading ? "pointer" : "default", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all .15s" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                    <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke={input.trim()&&!loading?"#0d0b08":"#3a2f20"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13"
+                      stroke={input.trim()&&!loading ? C.cream : C.muted}
+                      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
               </div>
