@@ -107,41 +107,107 @@ Say only this: "Tell me what you're working on — and what's the most important
 
 Then react immediately. Lead with your read. Bold the key insight. Close with action.`;
 
-// ── Colour tokens from the book cover ──────────────────────────────
+
+// ── Final brand palette — Midnight / Navy / Warm White ──────────────
 const C = {
-  cream:      "#F2EDE4",   // background
-  creamer:    "#EDE7DC",   // message bubbles, subtle areas
-  green:      "#1B4332",   // primary text, buttons, accents
-  greenMid:   "#2D6A4F",   // secondary green
-  greenLight: "#40916C",   // tertiary / hover
-  ink:        "#2C2C2C",   // body text
-  muted:      "#6B7A6B",   // placeholder, meta text
-  border:     "#D6CFBF",   // dividers
-  white:      "#FFFFFF",
+  // Foundations
+  pageBg:      "#FAFAFA",   // bright clean white — maximum contrast, nothing heavy
+  white:       "#FFFFFF",   // cards, agent bubbles
+  warmAccent:  "#F5F0E8",   // action card background — warm tonal, no new hue
+
+  // Primary brand
+  midnight:    "#0D1129",   // near-black with deep blue depth — headlines
+  navy:        "#1A2E8F",   // rich saturated navy — buttons, user bubbles, brand
+  navyDark:    "#111E6B",   // hover
+  navyTint:    "#E8ECFA",   // user bubble background — crisp, cool
+  navyBorder:  "#C4CCF0",   // user bubble border
+
+  // Text
+  ink:         "#0D1129",   // same as midnight — body text
+  muted:       "#6B7280",   // secondary text
+  mutedLight:  "#9CA3AF",   // placeholders, meta
+
+  // Borders
+  border:      "#E5E7EB",   // default — clean neutral
+  warmBorder:  "#DDD5C4",   // action card border — warm tonal
+
+  // Semantic
+  success:     "#22C55E",   // live indicator only
 };
 
+// Star divider — landing page only, never in UI chrome
+const StarDivider = () => (
+  <div style={{ display:"flex", alignItems:"center", gap:"14px",
+    justifyContent:"center", margin:"14px 0" }}>
+    <div style={{ height:"1px", flex:1, background:`${C.navy}20` }} />
+    <svg width="10" height="10" viewBox="0 0 24 24" fill={C.navy} opacity="0.35">
+      <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
+    </svg>
+    <div style={{ height:"1px", flex:1, background:`${C.navy}20` }} />
+  </div>
+);
+
 const LoadingDots = () => (
-  <div style={{ display:"flex", gap:"5px", alignItems:"center", padding:"6px 2px" }}>
+  <div style={{ display:"flex", gap:"6px", alignItems:"center", padding:"4px 2px" }}>
     {[0,1,2].map(i => (
-      <div key={i} style={{ width:"6px", height:"6px", borderRadius:"50%", background:C.greenMid, animation:"pulse 1.2s ease-in-out infinite", animationDelay:`${i*0.2}s` }} />
+      <div key={i} style={{ width:"7px", height:"7px", borderRadius:"50%",
+        background:C.navy, opacity:0.3,
+        animation:"dotpulse 1.4s ease-in-out infinite",
+        animationDelay:`${i*0.18}s` }} />
     ))}
   </div>
 );
 
-const formatMessage = (text, isUser) => {
-  return text.split("\n").map((line, i) => {
-    if (!line.trim()) return <div key={i} style={{ height:"5px" }} />;
+const formatMessage = (text, isUser) =>
+  text.split("\n").map((line, i) => {
+    if (!line.trim()) return <div key={i} style={{ height:"6px" }} />;
     const html = line.replace(
       /\*\*(.*?)\*\*/g,
-      `<strong style="color:${isUser ? C.cream : C.green};font-weight:600">$1</strong>`
+      `<strong style="color:${isUser ? C.white : C.navy};font-weight:600">$1</strong>`
     );
     return (
-      <p key={i}
-        style={{ margin:"0 0 5px 0", lineHeight:"1.72", fontSize:"14px", color: isUser ? C.creamer : C.ink }}
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
+      <p key={i} style={{ margin:"0 0 6px 0", lineHeight:"1.75",
+        fontSize:"14px", color: isUser ? "rgba(255,255,255,0.94)" : C.ink,
+        fontWeight:"400" }}
+        dangerouslySetInnerHTML={{ __html: html }} />
     );
   });
+
+// Splits last action sentence into a warm accent card
+const renderAgentBubble = (text) => {
+  const sentences = text.split(/(?<=[.!?])\s+/);
+  const actionRe = /^(Do |Run |Find |Talk |Charge |Ask |Test |Try |Before |Send |Pick |Decide |Build |Ship |Read |Call |Write |Schedule )/;
+  const last = sentences[sentences.length - 1]?.trim();
+  const isAction = last && last.length < 150 && actionRe.test(last);
+  const main = isAction ? sentences.slice(0, -1).join(" ") : text;
+  const action = isAction ? last : null;
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:"6px", maxWidth:"82%" }}>
+      <div style={{ padding:"14px 18px", background:C.white,
+        border:`1px solid ${C.border}`,
+        borderRadius:"4px 18px 18px 18px",
+        boxShadow:"0 2px 12px rgba(13,17,41,0.06)" }}>
+        {formatMessage(main, false)}
+      </div>
+      {action && (
+        <div style={{ padding:"11px 15px",
+          background:C.warmAccent,
+          border:`1px solid ${C.warmBorder}`,
+          borderLeft:`3px solid ${C.navy}`,
+          borderRadius:"0 8px 8px 0" }}>
+          <div style={{ fontSize:"9px", fontWeight:"700", color:C.navy,
+            letterSpacing:"0.1em", textTransform:"uppercase",
+            marginBottom:"4px", opacity:0.7 }}>
+            Your next step
+          </div>
+          <p style={{ fontSize:"13px", color:C.ink, lineHeight:"1.65", margin:0 }}>
+            {action}
+          </p>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default function StartupStrategyPartner() {
@@ -152,165 +218,269 @@ export default function StartupStrategyPartner() {
   const messagesEndRef           = useRef(null);
   const inputRef                 = useRef(null);
 
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior:"smooth" }); }, [messages, loading]);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior:"smooth" });
+  }, [messages, loading]);
 
   const startSession = () => {
     setStarted(true);
-    setMessages([{
-      role: "assistant",
-      content: "Welcome. I'm your Startup Strategy Partner — built on the methodology of \"A Startup Guide: From Idea to Empire\" by Matthias de Haan.\n\nI work with founders at every stage. Everything we work through will be specific to your situation — no generic advice.\n\n**Tell me what you're working on — and what's the most important thing on your mind right now.**"
+    setMessages([{ role:"assistant", content:
+      "Welcome — I'm your strategy partner, built on the methodology of The Founder's Field Manual.\n\nNo scripts. No generic advice. Just sharp thinking, specific to your situation.\n\n**What's going on? Tell me what you're building — or trying to figure out.**"
     }]);
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
-    const userMsg   = { role:"user", content:input.trim() };
+    const userMsg     = { role:"user", content:input.trim() };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
     try {
-      const res  = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "anthropic-dangerous-direct-browser-access": "true",
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "anthropic-dangerous-direct-browser-access":"true"
         },
-        body: JSON.stringify({
-          model:      "claude-opus-4-5",
-          max_tokens: 400,
-          system:     SYSTEM_PROMPT,
-          messages:   newMessages.map(m => ({ role:m.role, content:m.content })),
+        body:JSON.stringify({
+          model:"claude-opus-4-5",
+          max_tokens:400,
+          system:SYSTEM_PROMPT,
+          messages:newMessages.map(m => ({ role:m.role, content:m.content })),
         }),
       });
       const data = await res.json();
-      const text = data.content?.[0]?.text || "Something went wrong. Please try again.";
-      setMessages(prev => [...prev, { role:"assistant", content:text }]);
+      setMessages(prev => [...prev, {
+        role:"assistant",
+        content: data.content?.[0]?.text || "Something went wrong. Please try again."
+      }]);
     } catch {
-      setMessages(prev => [...prev, { role:"assistant", content:"Something went wrong. Please try again." }]);
+      setMessages(prev => [...prev, {
+        role:"assistant",
+        content:"Something went wrong. Please try again."
+      }]);
     }
     setLoading(false);
   };
 
-  const handleKey = e => { if (e.key==="Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
+  const handleKey = e => {
+    if (e.key==="Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  };
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500&display=swap');
-        @keyframes pulse   { 0%,100%{opacity:.25;transform:scale(.75)} 50%{opacity:1;transform:scale(1)} }
-        @keyframes fadeUp  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-        .msg { animation: fadeUp .28s ease forwards; }
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+        @keyframes dotpulse { 0%,100%{opacity:.12;transform:scale(.7)} 50%{opacity:.5;transform:scale(1)} }
+        @keyframes fadeUp   { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        .msg { animation: fadeUp .3s cubic-bezier(.22,.68,0,1.2) forwards; }
         textarea:focus { outline:none; }
-        ::-webkit-scrollbar       { width:4px; }
+        ::-webkit-scrollbar { width:4px; }
         ::-webkit-scrollbar-track { background:transparent; }
-        ::-webkit-scrollbar-thumb { background:${C.border}; border-radius:2px; }
-        button:hover { opacity:.88; }
+        ::-webkit-scrollbar-thumb { background:${C.border}; border-radius:4px; }
+        * { box-sizing:border-box; }
       `}</style>
 
-      <div style={{ minHeight:"100vh", background:C.cream, fontFamily:"'Inter',sans-serif", display:"flex", flexDirection:"column", color:C.ink }}>
+      <div style={{ minHeight:"100vh", background:C.pageBg,
+        fontFamily:"'Inter',sans-serif", display:"flex",
+        flexDirection:"column", color:C.ink }}>
 
-        {/* ── Header ────────────────────────────────────────────── */}
-        <header style={{ borderBottom:`1px solid ${C.border}`, padding:"14px 28px", display:"flex", alignItems:"center", gap:"14px", background:C.cream }}>
-          {/* Monogram */}
-          <div style={{ width:"36px", height:"36px", borderRadius:"50%", border:`1.5px solid ${C.green}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-            <span style={{ fontFamily:"'Playfair Display',serif", fontSize:"13px", fontWeight:"600", color:C.green, letterSpacing:"0.5px" }}>M</span>
-          </div>
+        {/* ── Header — wordmark only ── */}
+        <header style={{ borderBottom:`1px solid ${C.border}`,
+          padding:"13px 28px", display:"flex", alignItems:"center",
+          gap:"14px", background:C.white,
+          boxShadow:"0 1px 8px rgba(13,17,41,0.06)" }}>
+
           <div>
-            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"15px", fontWeight:"600", color:C.green, letterSpacing:"0.01em" }}>
-              It started with a feeling.
+            <div style={{ fontFamily:"'Oswald',sans-serif", fontSize:"14px",
+              fontWeight:"700", color:C.midnight, letterSpacing:"0.05em",
+              textTransform:"uppercase", lineHeight:"1" }}>
+              The Founder's
             </div>
-            <div style={{ fontSize:"10px", color:C.muted, fontWeight:"400", letterSpacing:"0.06em", textTransform:"uppercase", marginTop:"1px" }}>
-              Matthias de Haan · Founder · Operator · Builder
+            <div style={{ fontFamily:"'Oswald',sans-serif", fontSize:"14px",
+              fontWeight:"700", color:C.navy, letterSpacing:"0.05em",
+              textTransform:"uppercase", lineHeight:"1.15" }}>
+              Field Manual
             </div>
           </div>
-          <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:"6px", fontSize:"10px", color:C.greenLight, letterSpacing:"0.04em", textTransform:"uppercase" }}>
-            <div style={{ width:"5px", height:"5px", borderRadius:"50%", background:C.greenLight }} />
+
+          <div style={{ width:"1px", height:"28px", background:C.border }} />
+
+          <div style={{ fontSize:"10px", color:C.mutedLight,
+            letterSpacing:"0.06em", textTransform:"uppercase", fontWeight:"500" }}>
+            Strategy Partner
+          </div>
+
+          <div style={{ marginLeft:"auto", display:"flex", alignItems:"center",
+            gap:"6px", fontSize:"10px", color:C.muted,
+            letterSpacing:"0.05em", textTransform:"uppercase", fontWeight:"500" }}>
+            <div style={{ width:"6px", height:"6px", borderRadius:"50%",
+              background:C.success,
+              boxShadow:`0 0 6px ${C.success}60` }} />
             Live
           </div>
         </header>
 
-        {/* ── Content area ──────────────────────────────────────── */}
-        <div style={{ flex:1, display:"flex", flexDirection:"column", maxWidth:"700px", width:"100%", margin:"0 auto", padding:"0 20px" }}>
+        {/* ── Content ── */}
+        <div style={{ flex:1, display:"flex", flexDirection:"column",
+          maxWidth:"720px", width:"100%", margin:"0 auto", padding:"0 24px" }}>
 
           {!started ? (
-            /* ── Landing ───────────────────────────────────────── */
-            <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", textAlign:"center", padding:"48px 16px", gap:"36px" }}>
+            /* ── Landing ── */
+            <div style={{ flex:1, display:"flex", flexDirection:"column",
+              alignItems:"center", justifyContent:"center",
+              textAlign:"center", padding:"52px 16px 44px" }}>
 
-              {/* Hero text */}
-              <div>
-                <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"13px", fontStyle:"italic", color:C.greenMid, letterSpacing:"0.02em", marginBottom:"8px" }}>
-                  It started with a feeling.
-                </div>
-                <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"44px", fontWeight:"700", lineHeight:"1.05", color:C.green, letterSpacing:"-0.01em", marginBottom:"16px", textTransform:"uppercase" }}>
-                  WITH A<br />FEELING.
-                </div>
-                <p style={{ fontSize:"13px", color:C.muted, maxWidth:"360px", lineHeight:"1.8", fontWeight:"300", margin:"0 auto" }}>
-                  The founder's field manual — from first idea to exit.<br />Your strategy partner, always on.
-                </p>
+              {/* Eyebrow */}
+              <div style={{ fontSize:"10px", fontWeight:"600", color:C.navy,
+                letterSpacing:"0.18em", textTransform:"uppercase",
+                marginBottom:"18px", opacity:0.6 }}>
+                The Founder's Field Manual
               </div>
 
-              {/* Topic pills */}
-              <div style={{ display:"flex", flexWrap:"wrap", gap:"8px", justifyContent:"center", maxWidth:"420px" }}>
-                {["Idea validation","Pricing","Fundraising","Team & hiring","Go-to-market","Scaling"].map(t => (
-                  <div key={t} style={{ background:"transparent", border:`1px solid ${C.border}`, borderRadius:"20px", padding:"6px 14px", fontSize:"11px", color:C.muted, letterSpacing:"0.04em", textTransform:"uppercase" }}>{t}</div>
+              {/* Headline */}
+              <div style={{ fontFamily:"'Oswald',sans-serif",
+                fontSize:"clamp(48px,8.5vw,78px)", fontWeight:"700",
+                color:C.midnight, textTransform:"uppercase",
+                lineHeight:"0.92", letterSpacing:"0.01em",
+                marginBottom:"4px" }}>
+                Build Smarter.
+              </div>
+              <div style={{ fontFamily:"'Oswald',sans-serif",
+                fontSize:"clamp(48px,8.5vw,78px)", fontWeight:"700",
+                color:C.navy, textTransform:"uppercase",
+                lineHeight:"0.92", letterSpacing:"0.01em",
+                marginBottom:"22px" }}>
+                Move Faster.
+              </div>
+
+              <StarDivider />
+
+              {/* Value prop */}
+              <p style={{ fontSize:"15px", color:C.ink, lineHeight:"1.8",
+                maxWidth:"420px", marginBottom:"6px",
+                fontWeight:"400", letterSpacing:"-0.01em" }}>
+                A strategy partner that thinks alongside you — challenging your
+                assumptions, pressure-testing your ideas, and giving you
+                something concrete to act on.
+              </p>
+              <p style={{ fontSize:"13px", color:C.muted, lineHeight:"1.65",
+                maxWidth:"340px", marginBottom:"32px" }}>
+                From first idea to exit. No scripts. No generic advice. Ever.
+              </p>
+
+              {/* Stage pills */}
+              <div style={{ display:"flex", flexWrap:"wrap", gap:"8px",
+                justifyContent:"center", maxWidth:"460px",
+                marginBottom:"36px" }}>
+                {["Idea stage","Pre-launch","Early traction","Scaling"].map(t => (
+                  <div key={t} style={{ background:C.navyTint,
+                    border:`1px solid ${C.navyBorder}`,
+                    borderRadius:"20px", padding:"6px 16px",
+                    fontSize:"11px", color:C.navy,
+                    letterSpacing:"0.05em", textTransform:"uppercase",
+                    fontWeight:"600" }}>{t}</div>
                 ))}
               </div>
 
-              {/* CTA */}
-              <button onClick={startSession}
-                style={{ background:C.green, color:C.cream, border:"none", borderRadius:"4px", padding:"14px 40px", fontSize:"12px", fontFamily:"'Inter',sans-serif", fontWeight:"500", cursor:"pointer", letterSpacing:"0.1em", textTransform:"uppercase", transition:"opacity .15s" }}>
-                Begin session
+              {/* CTA — navy, full saturation, the one place it lives */}
+              <button onClick={startSession} style={{
+                background:C.navy, color:C.white, border:"none",
+                padding:"15px 52px", fontSize:"13px",
+                fontFamily:"'Oswald',sans-serif", fontWeight:"600",
+                cursor:"pointer", letterSpacing:"0.12em",
+                textTransform:"uppercase", borderRadius:"8px",
+                marginBottom:"36px",
+                boxShadow:`0 4px 20px ${C.navy}35`,
+                transition:"all .2s" }}
+                onMouseOver={e => {
+                  e.currentTarget.style.background = C.navyDark;
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = `0 6px 24px ${C.navy}45`;
+                }}
+                onMouseOut={e => {
+                  e.currentTarget.style.background = C.navy;
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = `0 4px 20px ${C.navy}35`;
+                }}>
+                Start the conversation
               </button>
 
-              {/* Book credit */}
-              <div style={{ borderTop:`1px solid ${C.border}`, paddingTop:"20px", width:"100%", maxWidth:"280px" }}>
-                <div style={{ fontSize:"10px", color:C.muted, letterSpacing:"0.08em", textTransform:"uppercase" }}>
-                  Matthias de Haan
-                </div>
-                <div style={{ fontSize:"9px", color:C.border, letterSpacing:"0.06em", textTransform:"uppercase", marginTop:"3px" }}>
-                  Founder · Operator · Builder
-                </div>
+              {/* Matthias — quiet credibility */}
+              <div style={{ paddingTop:"20px",
+                borderTop:`1px solid ${C.border}`,
+                width:"100%", maxWidth:"340px" }}>
+                <p style={{ fontSize:"11px", color:C.mutedLight,
+                  lineHeight:"1.8", letterSpacing:"0.01em" }}>
+                  Built on lessons from real companies, real failures, real exits.<br/>
+                  <span style={{ color:C.muted, fontWeight:"500" }}>
+                    Matthias de Haan — Founder · Operator · Builder
+                  </span>
+                </p>
               </div>
             </div>
 
           ) : (
-            /* ── Chat ──────────────────────────────────────────── */
+            /* ── Chat ── */
             <>
-              <div style={{ flex:1, overflowY:"auto", padding:"24px 0 12px", display:"flex", flexDirection:"column", gap:"20px" }}>
+              <div style={{ flex:1, overflowY:"auto",
+                padding:"28px 0 16px", display:"flex",
+                flexDirection:"column", gap:"20px" }}>
 
                 {messages.map((msg, i) => (
-                  <div key={i} className="msg"
-                    style={{ display:"flex", gap:"10px", flexDirection:msg.role==="user"?"row-reverse":"row", alignItems:"flex-start" }}>
+                  <div key={i} className="msg" style={{ display:"flex", gap:"10px",
+                    flexDirection:msg.role==="user"?"row-reverse":"row",
+                    alignItems:"flex-start" }}>
 
-                    {/* Avatar — assistant only */}
+                    {/* Avatar — FFM wordmark */}
                     {msg.role==="assistant" && (
-                      <div style={{ width:"28px", height:"28px", borderRadius:"50%", border:`1.5px solid ${C.green}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:"2px" }}>
-                        <span style={{ fontFamily:"'Playfair Display',serif", fontSize:"11px", fontWeight:"600", color:C.green }}>M</span>
+                      <div style={{ width:"30px", height:"30px",
+                        background:C.navy, borderRadius:"8px",
+                        display:"flex", alignItems:"center",
+                        justifyContent:"center", flexShrink:0,
+                        marginTop:"2px",
+                        boxShadow:`0 2px 8px ${C.navy}30` }}>
+                        <span style={{ fontFamily:"'Oswald',sans-serif",
+                          fontSize:"8px", fontWeight:"700",
+                          color:"rgba(255,255,255,0.9)",
+                          letterSpacing:"0.06em" }}>FFM</span>
                       </div>
                     )}
 
-                    {/* Bubble */}
-                    <div style={{
-                      maxWidth:"80%",
-                      padding: msg.role==="user" ? "10px 15px" : "14px 18px",
-                      borderRadius: msg.role==="user" ? "16px 16px 4px 16px" : "4px 16px 16px 16px",
-                      background: msg.role==="user" ? C.green : C.white,
-                      border: msg.role==="user" ? "none" : `1px solid ${C.border}`,
-                      boxShadow: msg.role==="user" ? "none" : "0 1px 4px rgba(0,0,0,0.04)",
-                    }}>
-                      {formatMessage(msg.content, msg.role==="user")}
-                    </div>
+                    {/* Bubbles */}
+                    {msg.role==="user" ? (
+                      <div style={{ maxWidth:"80%", padding:"12px 16px",
+                        background:C.navyTint,
+                        border:`1px solid ${C.navyBorder}`,
+                        borderRadius:"18px 18px 4px 18px" }}>
+                        {formatMessage(msg.content, true)}
+                      </div>
+                    ) : (
+                      renderAgentBubble(msg.content)
+                    )}
                   </div>
                 ))}
 
                 {loading && (
-                  <div className="msg" style={{ display:"flex", gap:"10px", alignItems:"flex-start" }}>
-                    <div style={{ width:"28px", height:"28px", borderRadius:"50%", border:`1.5px solid ${C.green}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:"2px" }}>
-                      <span style={{ fontFamily:"'Playfair Display',serif", fontSize:"11px", fontWeight:"600", color:C.green }}>M</span>
+                  <div className="msg" style={{ display:"flex", gap:"10px",
+                    alignItems:"flex-start" }}>
+                    <div style={{ width:"30px", height:"30px",
+                      background:C.navy, borderRadius:"8px",
+                      display:"flex", alignItems:"center",
+                      justifyContent:"center", flexShrink:0,
+                      marginTop:"2px",
+                      boxShadow:`0 2px 8px ${C.navy}30` }}>
+                      <span style={{ fontFamily:"'Oswald',sans-serif",
+                        fontSize:"8px", fontWeight:"700",
+                        color:"rgba(255,255,255,0.9)",
+                        letterSpacing:"0.06em" }}>FFM</span>
                     </div>
-                    <div style={{ padding:"12px 16px", borderRadius:"4px 16px 16px 16px", background:C.white, border:`1px solid ${C.border}`, boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
+                    <div style={{ padding:"14px 18px", background:C.white,
+                      border:`1px solid ${C.border}`,
+                      borderRadius:"4px 18px 18px 18px",
+                      boxShadow:"0 2px 12px rgba(13,17,41,0.06)" }}>
                       <LoadingDots />
                     </div>
                   </div>
@@ -318,25 +488,51 @@ export default function StartupStrategyPartner() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* ── Input bar ─────────────────────────────────── */}
-              <div style={{ borderTop:`1px solid ${C.border}`, padding:"14px 0 20px", display:"flex", gap:"10px", alignItems:"flex-end" }}>
-                <textarea
-                  ref={inputRef}
-                  value={input}
+              {/* ── Input ── */}
+              <div style={{ borderTop:`1px solid ${C.border}`,
+                padding:"14px 0 22px", display:"flex",
+                gap:"10px", alignItems:"flex-end" }}>
+                <textarea ref={inputRef} value={input}
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={handleKey}
-                  placeholder="Share what's on your mind..."
+                  placeholder="What's the decision in front of you?"
                   rows={1}
-                  style={{ flex:1, background:C.white, border:`1px solid ${C.border}`, borderRadius:"8px", padding:"11px 14px", fontSize:"13px", fontFamily:"'Inter',sans-serif", fontWeight:"300", color:C.ink, resize:"none", minHeight:"44px", maxHeight:"120px", overflowY:"auto", lineHeight:"1.55", caretColor:C.green, transition:"border-color .15s", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}
-                  onFocus={e  => e.target.style.borderColor = C.greenMid}
-                  onBlur={e   => e.target.style.borderColor = C.border}
+                  style={{ flex:1, background:C.white,
+                    border:`1.5px solid ${C.border}`,
+                    borderRadius:"12px", padding:"12px 16px",
+                    fontSize:"14px", fontFamily:"'Inter',sans-serif",
+                    fontWeight:"400", color:C.ink, resize:"none",
+                    minHeight:"48px", maxHeight:"120px",
+                    overflowY:"auto", lineHeight:"1.6",
+                    caretColor:C.navy,
+                    transition:"border-color .2s, box-shadow .2s",
+                    boxShadow:"0 1px 4px rgba(13,17,41,0.05)" }}
+                  onFocus={e => {
+                    e.target.style.borderColor = C.navy;
+                    e.target.style.boxShadow = `0 0 0 3px ${C.navy}12`;
+                  }}
+                  onBlur={e => {
+                    e.target.style.borderColor = C.border;
+                    e.target.style.boxShadow = "0 1px 4px rgba(13,17,41,0.05)";
+                  }}
                 />
-                <button onClick={sendMessage} disabled={!input.trim() || loading}
-                  style={{ width:"44px", height:"44px", borderRadius:"8px", background: input.trim()&&!loading ? C.green : C.creamer, border:`1px solid ${input.trim()&&!loading ? C.green : C.border}`, cursor: input.trim()&&!loading ? "pointer" : "default", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all .15s" }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                <button onClick={sendMessage}
+                  disabled={!input.trim()||loading}
+                  style={{ width:"48px", height:"48px",
+                    background:input.trim()&&!loading ? C.navy : C.navyTint,
+                    border:`1.5px solid ${input.trim()&&!loading ? C.navy : C.navyBorder}`,
+                    borderRadius:"12px",
+                    cursor:input.trim()&&!loading?"pointer":"default",
+                    display:"flex", alignItems:"center",
+                    justifyContent:"center", flexShrink:0,
+                    transition:"all .2s",
+                    boxShadow:input.trim()&&!loading
+                      ? `0 4px 14px ${C.navy}35` : "none" }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13"
-                      stroke={input.trim()&&!loading ? C.cream : C.muted}
-                      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      stroke={input.trim()&&!loading ? C.white : C.mutedLight}
+                      strokeWidth="2.2" strokeLinecap="round"
+                      strokeLinejoin="round"/>
                   </svg>
                 </button>
               </div>
