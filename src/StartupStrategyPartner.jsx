@@ -238,12 +238,9 @@ export default function StartupStrategyPartner() {
     setInput("");
     setLoading(true);
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("/api/chat", {
         method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "anthropic-dangerous-direct-browser-access":"true"
-        },
+        headers:{ "Content-Type":"application/json" },
         body:JSON.stringify({
           model:"claude-opus-4-5",
           max_tokens:400,
