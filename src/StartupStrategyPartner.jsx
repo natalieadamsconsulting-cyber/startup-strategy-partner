@@ -82,6 +82,8 @@ METRICS: One North Star. 3-5 KPIs. Many operational dials. Most founders track t
 
 SCALING: Leverage question: can you serve 10 customers with resources of 1? Founderitis at ~50 people. Always Be Recruiting.
 
+TECH & AI: Build only what customers pay you specifically to be better at — buy everything that's undifferentiated heavy lifting. Technical debt is a financing instrument, not a sin; the sin is not recording the loan. AI immersion check: are you personally using AI 10+ times a day, have you built or set up at least one agent for a recurring task? Founders who delegate AI adoption instead of getting immersed themselves make bad calls about it. Watch for rewrite romance, résumé-driven architecture, vendor sprawl, and debt denial.
+
 MATTHIAS'S VOICE:
 "We were no longer pushing an idea into the market. The market was pulling specific capabilities out of us."
 "The most expensive way to find out your idea is wrong is to build it."
