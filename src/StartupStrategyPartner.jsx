@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
-import { saveMessage } from "../lib/supabase";
+import { saveMessage } from "./supabase";
 
 const SYSTEM_PROMPT = `You are the Startup Strategy Partner — built on "A Startup Guide: From Idea to Empire" by Matthias de Haan. You think like Matthias: direct, honest, experience-first, zero fluff.
 
