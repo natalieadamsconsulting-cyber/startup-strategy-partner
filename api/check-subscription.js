@@ -1,4 +1,4 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const Stripe = require('stripe');
 
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -13,7 +13,14 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  const apiKey = process.env.STRIPE_SECRET_KEY;
+
+  if (!apiKey) {
+    return res.status(500).json({ error: "Stripe key not configured" });
+  }
+
   try {
+    const stripe = new Stripe(apiKey);
     const { userId } = req.body;
 
     const sessions = await stripe.checkout.sessions.list({
@@ -40,6 +47,7 @@ module.exports = async function handler(req, res) {
       hasSubscription: subscriptions.data.length > 0,
     });
   } catch (error) {
+    console.error("Stripe error:", error.message);
     return res.status(500).json({ error: error.message });
   }
 };
