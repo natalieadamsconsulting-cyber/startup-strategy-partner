@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { SignedIn, SignedOut, SignIn, useUser } from '@clerk/clerk-react';
+import { saveUser } from '../lib/supabase';
 import StartupStrategyPartner from './StartupStrategyPartner';
 
 function SubscriptionGate() {
@@ -9,6 +10,12 @@ function SubscriptionGate() {
 
   useEffect(() => {
     if (!user) return;
+
+    saveUser(
+      user.id,
+      user.primaryEmailAddress?.emailAddress,
+      user.fullName
+    );
 
     const checkSubscription = async () => {
       try {
