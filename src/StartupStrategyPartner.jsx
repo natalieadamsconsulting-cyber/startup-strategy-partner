@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react";
+import { useUser } from "@clerk/clerk-react";
+import { saveMessage } from "../lib/supabase";
 
 const SYSTEM_PROMPT = `You are the Startup Strategy Partner — built on "A Startup Guide: From Idea to Empire" by Matthias de Haan. You think like Matthias: direct, honest, experience-first, zero fluff.
 
@@ -217,6 +219,7 @@ export default function StartupStrategyPartner() {
   const [started, setStarted]   = useState(false);
   const messagesEndRef           = useRef(null);
   const inputRef                 = useRef(null);
+  const { user }                 = useUser();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior:"smooth" });
@@ -249,10 +252,15 @@ export default function StartupStrategyPartner() {
         }),
       });
       const data = await res.json();
+      const assistantContent = data.content?.[0]?.text || "Something went wrong. Please try again.";
       setMessages(prev => [...prev, {
         role:"assistant",
-        content: data.content?.[0]?.text || "Something went wrong. Please try again."
+        content: assistantContent
       }]);
+      if (user) {
+        saveMessage(user.id, "user", userMsg.content);
+        saveMessage(user.id, "assistant", assistantContent);
+      }
     } catch {
       setMessages(prev => [...prev, {
         role:"assistant",
