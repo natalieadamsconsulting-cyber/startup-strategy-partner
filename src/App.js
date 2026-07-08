@@ -272,9 +272,24 @@ function SubscriptionGate() {
     checkSubscription();
   }, [user]);
 
-  const handleSubscribe = () => {
-    window.location.href = "https://buy.stripe.com/aFa4gB1vFeNA6g63296Zy00";
-  };
+  const handleSubscribe = async () => {
+  try {
+    const res = await fetch('/api/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: user.id,
+        email: user.primaryEmailAddress?.emailAddress,
+      }),
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   if (checking) {
     return (
