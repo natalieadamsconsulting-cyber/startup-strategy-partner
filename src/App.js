@@ -36,23 +36,8 @@ function SubscriptionGate() {
     checkSubscription();
   }, [user]);
 
-  const handleSubscribe = async () => {
-    try {
-      const res = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          email: user.primaryEmailAddress?.emailAddress,
-        }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (err) {
-      console.error(err);
-    }
+  const handleSubscribe = () => {
+    window.location.href = "https://buy.stripe.com/aFa4gB1vFeNA6g63296Zy00";
   };
 
   if (checking) {
@@ -130,13 +115,24 @@ function SubscriptionGate() {
           }}>
             Get unlimited access to your AI strategy partner — challenging your assumptions and helping you build smarter.
           </p>
+          <div style={{
+            background: "#EEF0F8",
+            borderRadius: "8px",
+            padding: "10px 16px",
+            marginBottom: "16px",
+            fontSize: "13px",
+            color: "#1A2E8F",
+            fontWeight: "500"
+          }}>
+            🎉 7-day free trial — no charge until day 8
+          </div>
           <p style={{
             fontSize: "24px",
             fontWeight: "700",
             color: "#0D1129",
             marginBottom: "24px"
           }}>
-            $59.99<span style={{ fontSize: "14px", fontWeight: "400", color: "#6B7280" }}>/month</span>
+            $59.99<span style={{ fontSize: "14px", fontWeight: "400", color: "#6B7280" }}>/month after trial</span>
           </p>
           <button
             onClick={handleSubscribe}
@@ -156,14 +152,14 @@ function SubscriptionGate() {
               boxShadow: "0 4px 14px rgba(26,46,143,0.3)",
             }}
           >
-            Subscribe Now
+            Start Free Trial
           </button>
           <p style={{
             fontSize: "11px",
             color: "#9CA3AF",
             marginTop: "12px"
           }}>
-            Cancel anytime. Billed monthly.
+            7 days free · then $59.99/month · cancel anytime
           </p>
         </div>
       </div>
