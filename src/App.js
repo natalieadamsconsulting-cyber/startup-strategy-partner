@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { SignedIn, SignedOut, SignIn, useUser } from '@clerk/clerk-react';
-import { saveUser } from '../lib/supabase';
+import { saveUser } from './supabase';
 import StartupStrategyPartner from './StartupStrategyPartner';
 
 function SubscriptionGate() {
