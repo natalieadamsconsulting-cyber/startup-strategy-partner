@@ -220,8 +220,11 @@ export default function StartupStrategyPartner() {
   const [loading, setLoading]   = useState(false);
   const [started, setStarted]   = useState(false);
   const [historyLoaded, setHistoryLoaded] = useState(false);
+  const [attachment, setAttachment] = useState(null); // { name, mediaType, kind, base64 }
+  const [attachError, setAttachError] = useState(null);
   const messagesEndRef           = useRef(null);
   const inputRef                 = useRef(null);
+  const fileInputRef             = useRef(null);
   const { user }                 = useUser();
 
   useEffect(() => {
@@ -255,12 +258,76 @@ export default function StartupStrategyPartner() {
   // a user's total conversation history grows across logins.
   const MAX_HISTORY_MESSAGES = 24;
 
+  // File attachments — kept deliberately small since images/PDFs cost far
+  // more tokens than text. Supported Claude content-block types only.
+  const MAX_ATTACHMENT_MB = 5;
+  const ALLOWED_TYPES = {
+    "image/png":"image", "image/jpeg":"image", "image/gif":"image", "image/webp":"image",
+    "application/pdf":"document",
+    "text/plain":"document", "text/csv":"document", "text/markdown":"document",
+  };
+  const EXT_FALLBACK = { ".txt":"text/plain", ".csv":"text/csv", ".md":"text/markdown" };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file later
+    if (!file) return;
+    setAttachError(null);
+
+    let mediaType = file.type;
+    if (!ALLOWED_TYPES[mediaType]) {
+      const ext = "." + (file.name.split(".").pop() || "").toLowerCase();
+      if (EXT_FALLBACK[ext]) mediaType = EXT_FALLBACK[ext];
+    }
+    const kind = ALLOWED_TYPES[mediaType];
+    if (!kind) {
+      setAttachError("That file type isn't supported. Use an image, PDF, or plain text file.");
+      return;
+    }
+    if (file.size > MAX_ATTACHMENT_MB * 1024 * 1024) {
+      setAttachError(`Files must be under ${MAX_ATTACHMENT_MB}MB to keep response costs down.`);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result.split(",")[1] || "";
+      setAttachment({ name:file.name, mediaType, kind, base64 });
+    };
+    reader.onerror = () => setAttachError("Couldn't read that file. Please try again.");
+    reader.readAsDataURL(file);
+  };
+
+  const removeAttachment = () => { setAttachment(null); setAttachError(null); };
+
   const sendMessage = async () => {
-    if (!input.trim() || loading) return;
-    const userMsg     = { role:"user", content:input.trim() };
+    if ((!input.trim() && !attachment) || loading) return;
+
+    const text = input.trim();
+    // What we store/display/resend as history — plain text only, so an
+    // attachment never gets re-uploaded to the model on later turns.
+    const displayText = attachment
+      ? `${text}${text ? "\n\n" : ""}📎 ${attachment.name}`
+      : text;
+    const userMsg     = { role:"user", content:displayText };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
+
+    // The rich content block — sent to the API for THIS turn only.
+    const richContent = attachment
+      ? [
+          { type:"text", text: text || `Please review this file: ${attachment.name}` },
+          attachment.kind === "image"
+            ? { type:"image", source:{ type:"base64", media_type:attachment.mediaType, data:attachment.base64 } }
+            : { type:"document", source:{ type:"base64", media_type:attachment.mediaType, data:attachment.base64 } }
+        ]
+      : displayText;
+
+    const apiMessages = newMessages.slice(-MAX_HISTORY_MESSAGES).map(m => ({ role:m.role, content:m.content }));
+    if (attachment) apiMessages[apiMessages.length - 1] = { role:"user", content:richContent };
+
     setInput("");
+    setAttachment(null);
     setLoading(true);
     try {
       const res = await fetch("/api/chat", {
@@ -274,7 +341,7 @@ export default function StartupStrategyPartner() {
           // older turns (10% of input price) instead of paying full price
           // to resend them every message.
           cache_control:{ type:"ephemeral" },
-          messages:newMessages.slice(-MAX_HISTORY_MESSAGES).map(m => ({ role:m.role, content:m.content })),
+          messages:apiMessages,
         }),
       });
       const data = await res.json();
@@ -522,50 +589,94 @@ export default function StartupStrategyPartner() {
               {/* ── Input ── */}
               <div style={{ borderTop:`1px solid ${C.border}`,
                 padding:"14px 0 22px", display:"flex",
-                gap:"10px", alignItems:"flex-end" }}>
-                <textarea ref={inputRef} value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyDown={handleKey}
-                  placeholder="What's the decision in front of you?"
-                  rows={1}
-                  style={{ flex:1, background:C.white,
-                    border:`1.5px solid ${C.border}`,
-                    borderRadius:"12px", padding:"12px 16px",
-                    fontSize:"14px", fontFamily:"'Inter',sans-serif",
-                    fontWeight:"400", color:C.ink, resize:"none",
-                    minHeight:"48px", maxHeight:"120px",
-                    overflowY:"auto", lineHeight:"1.6",
-                    caretColor:C.navy,
-                    transition:"border-color .2s, box-shadow .2s",
-                    boxShadow:"0 1px 4px rgba(13,17,41,0.05)" }}
-                  onFocus={e => {
-                    e.target.style.borderColor = C.navy;
-                    e.target.style.boxShadow = `0 0 0 3px ${C.navy}12`;
-                  }}
-                  onBlur={e => {
-                    e.target.style.borderColor = C.border;
-                    e.target.style.boxShadow = "0 1px 4px rgba(13,17,41,0.05)";
-                  }}
-                />
-                <button onClick={sendMessage}
-                  disabled={!input.trim()||loading}
-                  style={{ width:"48px", height:"48px",
-                    background:input.trim()&&!loading ? C.navy : C.navyTint,
-                    border:`1.5px solid ${input.trim()&&!loading ? C.navy : C.navyBorder}`,
-                    borderRadius:"12px",
-                    cursor:input.trim()&&!loading?"pointer":"default",
-                    display:"flex", alignItems:"center",
-                    justifyContent:"center", flexShrink:0,
-                    transition:"all .2s",
-                    boxShadow:input.trim()&&!loading
-                      ? `0 4px 14px ${C.navy}35` : "none" }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13"
-                      stroke={input.trim()&&!loading ? C.white : C.mutedLight}
-                      strokeWidth="2.2" strokeLinecap="round"
-                      strokeLinejoin="round"/>
-                  </svg>
-                </button>
+                flexDirection:"column" }}>
+
+                {attachment && (
+                  <div style={{ display:"inline-flex", alignItems:"center",
+                    gap:"8px", background:C.navyTint,
+                    border:`1px solid ${C.navyBorder}`,
+                    borderRadius:"8px", padding:"6px 10px",
+                    marginBottom:"8px", fontSize:"12px", color:C.navy,
+                    alignSelf:"flex-start", maxWidth:"100%" }}>
+                    <span style={{ overflow:"hidden", textOverflow:"ellipsis",
+                      whiteSpace:"nowrap" }}>📎 {attachment.name}</span>
+                    <button onClick={removeAttachment} title="Remove attachment"
+                      style={{ background:"none", border:"none", cursor:"pointer",
+                        color:C.navy, fontSize:"14px", fontWeight:"700",
+                        lineHeight:1, padding:0 }}>×</button>
+                  </div>
+                )}
+                {attachError && (
+                  <p style={{ fontSize:"11px", color:"#B91C1C", marginBottom:"8px" }}>
+                    {attachError}
+                  </p>
+                )}
+
+                <div style={{ display:"flex", gap:"10px", alignItems:"flex-end" }}>
+                  <input type="file" ref={fileInputRef}
+                    accept="image/png,image/jpeg,image/gif,image/webp,application/pdf,text/plain,text/csv,text/markdown,.md"
+                    onChange={handleFileSelect}
+                    style={{ display:"none" }} />
+                  <button onClick={() => fileInputRef.current?.click()}
+                    disabled={loading}
+                    title={`Attach an image, PDF, or text file (max ${MAX_ATTACHMENT_MB}MB)`}
+                    style={{ width:"48px", height:"48px",
+                      background:C.white, border:`1.5px solid ${C.border}`,
+                      borderRadius:"12px",
+                      cursor:loading?"default":"pointer",
+                      display:"flex", alignItems:"center",
+                      justifyContent:"center", flexShrink:0,
+                      transition:"all .2s" }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.2 9.19a1.5 1.5 0 0 1-2.12-2.12l8.49-8.48"
+                        stroke={C.muted} strokeWidth="2" strokeLinecap="round"
+                        strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                  <textarea ref={inputRef} value={input}
+                    onChange={e => setInput(e.target.value)}
+                    onKeyDown={handleKey}
+                    placeholder="What's the decision in front of you?"
+                    rows={1}
+                    style={{ flex:1, background:C.white,
+                      border:`1.5px solid ${C.border}`,
+                      borderRadius:"12px", padding:"12px 16px",
+                      fontSize:"14px", fontFamily:"'Inter',sans-serif",
+                      fontWeight:"400", color:C.ink, resize:"none",
+                      minHeight:"48px", maxHeight:"120px",
+                      overflowY:"auto", lineHeight:"1.6",
+                      caretColor:C.navy,
+                      transition:"border-color .2s, box-shadow .2s",
+                      boxShadow:"0 1px 4px rgba(13,17,41,0.05)" }}
+                    onFocus={e => {
+                      e.target.style.borderColor = C.navy;
+                      e.target.style.boxShadow = `0 0 0 3px ${C.navy}12`;
+                    }}
+                    onBlur={e => {
+                      e.target.style.borderColor = C.border;
+                      e.target.style.boxShadow = "0 1px 4px rgba(13,17,41,0.05)";
+                    }}
+                  />
+                  <button onClick={sendMessage}
+                    disabled={(!input.trim()&&!attachment)||loading}
+                    style={{ width:"48px", height:"48px",
+                      background:(input.trim()||attachment)&&!loading ? C.navy : C.navyTint,
+                      border:`1.5px solid ${(input.trim()||attachment)&&!loading ? C.navy : C.navyBorder}`,
+                      borderRadius:"12px",
+                      cursor:(input.trim()||attachment)&&!loading?"pointer":"default",
+                      display:"flex", alignItems:"center",
+                      justifyContent:"center", flexShrink:0,
+                      transition:"all .2s",
+                      boxShadow:(input.trim()||attachment)&&!loading
+                        ? `0 4px 14px ${C.navy}35` : "none" }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13"
+                        stroke={(input.trim()||attachment)&&!loading ? C.white : C.mutedLight}
+                        strokeWidth="2.2" strokeLinecap="round"
+                        strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
             </>
           )}
