@@ -345,7 +345,9 @@ export default function StartupStrategyPartner() {
         }),
       });
       const data = await res.json();
-      const assistantContent = data.content?.[0]?.text || "Something went wrong. Please try again.";
+      const assistantContent = data.content?.[0]?.text
+        || (data.error?.message ? `Something went wrong: ${data.error.message}` : null)
+        || `Something went wrong (no response content). Status ${res.status}.`;
       setMessages(prev => [...prev, {
         role:"assistant",
         content: assistantContent
@@ -354,10 +356,10 @@ export default function StartupStrategyPartner() {
         saveMessage(user.id, "user", userMsg.content);
         saveMessage(user.id, "assistant", assistantContent);
       }
-    } catch {
+    } catch (err) {
       setMessages(prev => [...prev, {
         role:"assistant",
-        content:"Something went wrong. Please try again."
+        content:`Something went wrong: ${err.message || "please try again."}`
       }]);
     }
     setLoading(false);
