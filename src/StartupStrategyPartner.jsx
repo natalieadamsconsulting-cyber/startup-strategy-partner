@@ -335,8 +335,15 @@ export default function StartupStrategyPartner() {
         headers:{ "Content-Type":"application/json" },
         body:JSON.stringify({
           model:"claude-sonnet-5",
-          max_tokens:400,
+          // A ceiling, not a cost — you're billed for tokens actually
+          // generated, so headroom here is free unless a reply runs long.
+          max_tokens:700,
           system:SYSTEM_PROMPT,
+          // Sonnet 5 runs adaptive thinking by default, and thinking tokens
+          // count against max_tokens — with a 400-token budget that left no
+          // room for the actual reply. We don't need visible reasoning here,
+          // and skipping it keeps output tokens (and cost) down too.
+          thinking:{ type:"disabled" },
           // Automatic prompt caching: reuses the cached system prompt +
           // older turns (10% of input price) instead of paying full price
           // to resend them every message.
@@ -345,7 +352,10 @@ export default function StartupStrategyPartner() {
         }),
       });
       const data = await res.json();
-      const assistantContent = data.content?.[0]?.text
+      // Find the text block rather than assuming index 0 — some responses
+      // can include non-text blocks (e.g. thinking) ahead of the answer.
+      const textBlock = data.content?.find(b => b.type === "text");
+      const assistantContent = textBlock?.text
         || (data.error?.message ? `Something went wrong: ${data.error.message}` : null)
         || `Something went wrong. Status ${res.status}. Raw: ${JSON.stringify(data).slice(0, 400)}`;
       setMessages(prev => [...prev, {
