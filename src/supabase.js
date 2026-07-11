@@ -1,59 +1,52 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseKey = process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY;
-
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Conversation and user data is read/written through server-side API routes
+// (/api/messages, /api/save-user), not directly from the browser. Those routes
+// use Supabase's service-role key, which is never exposed to the client.
+// Direct table access from the browser's public key is locked down at the
+// database level (RLS denies it), so this indirection is required.
 
 export async function saveMessage(userId, role, content) {
   try {
-    const { error } = await supabase
-      .from('conversations')
-      .insert({
-        user_id: userId,
-        role: role,
-        content: content,
-        created_at: new Date().toISOString()
-      });
-    if (error) console.error('Error saving message:', error);
+    const res = await fetch('/api/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, role, content })
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      console.error('Error saving message:', data.error || res.statusText);
+    }
   } catch (err) {
-    console.error('Supabase error:', err);
+    console.error('Save message error:', err);
   }
 }
 
 export async function getMessages(userId, limit = 60) {
   try {
-    // Pull only the most recent `limit` messages (cheaper reads, bounded
-    // browser memory), then flip back to chronological order for display.
-    const { data, error } = await supabase
-      .from('conversations')
-      .select('role, content, created_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(limit);
-    if (error) {
-      console.error('Error loading messages:', error);
+    const res = await fetch(`/api/messages?userId=${encodeURIComponent(userId)}&limit=${limit}`);
+    if (!res.ok) {
+      console.error('Error loading messages:', res.statusText);
       return [];
     }
-    return (data || []).reverse();
+    const data = await res.json();
+    return data.messages || [];
   } catch (err) {
-    console.error('Supabase error:', err);
+    console.error('Get messages error:', err);
     return [];
   }
 }
 
 export async function saveUser(userId, email, name) {
   try {
-    const { error } = await supabase
-      .from('users')
-      .upsert({
-        id: userId,
-        email: email,
-        name: name || '',
-        updated_at: new Date().toISOString()
-      });
-    if (error) console.error('Error saving user:', error);
+    const res = await fetch('/api/save-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, email, name })
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      console.error('Error saving user:', data.error || res.statusText);
+    }
   } catch (err) {
-    console.error('Supabase error:', err);
+    console.error('Save user error:', err);
   }
 }
