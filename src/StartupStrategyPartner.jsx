@@ -249,6 +249,12 @@ export default function StartupStrategyPartner() {
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
+  // How many recent messages get sent to the model as context. Full history
+  // still lives in Supabase and in the UI — this only bounds what we pay to
+  // resend to the API on every turn, so token cost doesn't grow forever as
+  // a user's total conversation history grows across logins.
+  const MAX_HISTORY_MESSAGES = 24;
+
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
     const userMsg     = { role:"user", content:input.trim() };
@@ -261,10 +267,14 @@ export default function StartupStrategyPartner() {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body:JSON.stringify({
-          model:"claude-opus-4-5",
+          model:"claude-sonnet-5",
           max_tokens:400,
           system:SYSTEM_PROMPT,
-          messages:newMessages.map(m => ({ role:m.role, content:m.content })),
+          // Automatic prompt caching: reuses the cached system prompt +
+          // older turns (10% of input price) instead of paying full price
+          // to resend them every message.
+          cache_control:{ type:"ephemeral" },
+          messages:newMessages.slice(-MAX_HISTORY_MESSAGES).map(m => ({ role:m.role, content:m.content })),
         }),
       });
       const data = await res.json();

@@ -30,6 +30,9 @@ module.exports = async function handler(req, res) {
       cancel_url: `${req.headers.origin}/?payment=cancelled`,
       client_reference_id: userId,
       customer_email: email,
+      // Shows a "promo code" field on Stripe's checkout page so beta
+      // testers can enter a 100%-off coupon instead of paying.
+      allow_promotion_codes: true,
     };
 
     // Regular plan gets a 7-day trial; early adopter plan charges immediately.

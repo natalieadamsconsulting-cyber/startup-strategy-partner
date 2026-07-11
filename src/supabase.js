@@ -21,18 +21,21 @@ export async function saveMessage(userId, role, content) {
   }
 }
 
-export async function getMessages(userId) {
+export async function getMessages(userId, limit = 60) {
   try {
+    // Pull only the most recent `limit` messages (cheaper reads, bounded
+    // browser memory), then flip back to chronological order for display.
     const { data, error } = await supabase
       .from('conversations')
       .select('role, content, created_at')
       .eq('user_id', userId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false })
+      .limit(limit);
     if (error) {
       console.error('Error loading messages:', error);
       return [];
     }
-    return data || [];
+    return (data || []).reverse();
   } catch (err) {
     console.error('Supabase error:', err);
     return [];

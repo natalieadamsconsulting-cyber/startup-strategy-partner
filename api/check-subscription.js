@@ -12,9 +12,18 @@ module.exports = async function handler(req, res) {
   try {
     const { userId, email } = req.body;
 
-    // Owner bypass
+    // Comma-separated allowlist for beta testers, managed via the
+    // BETA_ACCESS_EMAILS env var in Vercel — no code change needed to
+    // add/remove someone, just update the env var and redeploy.
+    const betaEmails = (process.env.BETA_ACCESS_EMAILS || "")
+      .split(",")
+      .map(e => e.trim().toLowerCase())
+      .filter(Boolean);
+
+    // Owner + beta-tester bypass
     if (email === "natalie.adams888@gmail.com" ||
-        email === "natalieadamsconsulting@gmail.com") {
+        email === "natalieadamsconsulting@gmail.com" ||
+        betaEmails.includes((email || "").toLowerCase())) {
       return res.status(200).json({ hasSubscription: true });
     }
 

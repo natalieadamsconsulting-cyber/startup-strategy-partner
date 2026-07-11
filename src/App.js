@@ -279,25 +279,35 @@ function SubscriptionGate() {
     checkSubscription();
   }, [user]);
 
+  const [subscribeError, setSubscribeError] = useState(null);
+  const [subscribing, setSubscribing] = useState(false);
+
   const handleSubscribe = async () => {
-  try {
-    const res = await fetch('/api/create-checkout-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId: user.id,
-        email: user.primaryEmailAddress?.emailAddress,
-        plan: early ? "early" : undefined,
-      }),
-    });
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
+    setSubscribeError(null);
+    setSubscribing(true);
+    try {
+      const res = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          email: user.primaryEmailAddress?.emailAddress,
+          plan: early ? "early" : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
+      console.error('Checkout session error:', data);
+      setSubscribeError(data.error || 'Something went wrong starting checkout. Please try again.');
+    } catch (err) {
+      console.error(err);
+      setSubscribeError("Couldn't reach the payment system. Please try again.");
     }
-  } catch (err) {
-    console.error(err);
-  }
-};
+    setSubscribing(false);
+  };
 
   if (checking) {
     return (
@@ -354,16 +364,22 @@ function SubscriptionGate() {
               ? <>$1<span style={{ fontSize: "14px", fontWeight: "400", color: "#6B7280" }}>/month</span></>
               : <>$59.99<span style={{ fontSize: "14px", fontWeight: "400", color: "#6B7280" }}>/month after trial</span></>}
           </p>
-          <button onClick={handleSubscribe} style={{
+          <button onClick={handleSubscribe} disabled={subscribing} style={{
             background: "#1A2E8F", color: "white", border: "none",
             padding: "14px 40px", fontSize: "13px",
             fontFamily: "'Oswald', sans-serif", fontWeight: "600",
-            cursor: "pointer", letterSpacing: "0.12em",
+            cursor: subscribing ? "default" : "pointer", letterSpacing: "0.12em",
             textTransform: "uppercase", borderRadius: "8px", width: "100%",
-            boxShadow: "0 4px 14px rgba(26,46,143,0.3)"
+            boxShadow: "0 4px 14px rgba(26,46,143,0.3)",
+            opacity: subscribing ? 0.7 : 1
           }}>
-            {early ? "Get Early Access — $1/mo" : "Start Free Trial"}
+            {subscribing ? "Loading..." : (early ? "Get Early Access — $1/mo" : "Start Free Trial")}
           </button>
+          {subscribeError && (
+            <p style={{ fontSize: "12px", color: "#B91C1C", marginTop: "10px" }}>
+              {subscribeError}
+            </p>
+          )}
           <p style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "12px" }}>
             {early ? "$1/month · cancel anytime" : "7 days free · then $59.99/month · cancel anytime"}
           </p>
