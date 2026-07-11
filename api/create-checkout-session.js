@@ -13,23 +13,31 @@ module.exports = async function handler(req, res) {
 
   try {
     const stripe = new Stripe(apiKey);
-    const { userId, email } = req.body;
+    const { userId, email, plan } = req.body;
 
-    const session = await stripe.checkout.sessions.create({
+    const priceId = plan === "early"
+      ? process.env.EARLY_ADOPTER_STRIPE_PRICE_ID
+      : process.env.REACT_APP_STRIPE_PRICE_ID;
+
+    const sessionConfig = {
       payment_method_types: ["card"],
       mode: "subscription",
-      subscription_data: {
-        trial_period_days: 7,
-      },
       line_items: [{
-        price: process.env.REACT_APP_STRIPE_PRICE_ID,
+        price: priceId,
         quantity: 1,
       }],
       success_url: `${req.headers.origin}/?payment=success`,
       cancel_url: `${req.headers.origin}/?payment=cancelled`,
       client_reference_id: userId,
       customer_email: email,
-    });
+    };
+
+    // Regular plan gets a 7-day trial; early adopter plan charges immediately.
+    if (plan !== "early") {
+      sessionConfig.subscription_data = { trial_period_days: 7 };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     return res.status(200).json({ url: session.url });
   } catch (error) {

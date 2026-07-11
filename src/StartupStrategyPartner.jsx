@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
-import { saveMessage } from "./supabase";
+import { saveMessage, getMessages } from "./supabase";
 
 const SYSTEM_PROMPT = `You are the Startup Strategy Partner — built on "A Startup Guide: From Idea to Empire" by Matthias de Haan. You think like Matthias: direct, honest, experience-first, zero fluff.
 
@@ -219,6 +219,7 @@ export default function StartupStrategyPartner() {
   const [input, setInput]       = useState("");
   const [loading, setLoading]   = useState(false);
   const [started, setStarted]   = useState(false);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
   const messagesEndRef           = useRef(null);
   const inputRef                 = useRef(null);
   const { user }                 = useUser();
@@ -226,6 +227,19 @@ export default function StartupStrategyPartner() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior:"smooth" });
   }, [messages, loading]);
+
+  // Resume a previous conversation on login, if one exists
+  useEffect(() => {
+    if (!user || historyLoaded) return;
+    (async () => {
+      const history = await getMessages(user.id);
+      if (history.length > 0) {
+        setMessages(history.map(m => ({ role: m.role, content: m.content })));
+        setStarted(true);
+      }
+      setHistoryLoaded(true);
+    })();
+  }, [user, historyLoaded]);
 
   const startSession = () => {
     setStarted(true);

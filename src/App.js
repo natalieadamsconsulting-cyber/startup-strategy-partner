@@ -3,8 +3,14 @@ import { SignedIn, SignedOut, SignIn, SignUp, useUser } from '@clerk/clerk-react
 import { saveUser } from './supabase';
 import StartupStrategyPartner from './StartupStrategyPartner';
 
+// ── Detect ?plan=early in the URL ───────────────────────────────────
+function isEarlyAdopter() {
+  return new URLSearchParams(window.location.search).get('plan') === 'early';
+}
+
 // ── Landing page shown to logged-out visitors ──────────────────────
 function LandingPage({ onLogin, onSignUp }) {
+  const early = isEarlyAdopter();
   return (
     <div style={{
       minHeight: "100vh",
@@ -185,7 +191,7 @@ function LandingPage({ onLogin, onSignUp }) {
             onMouseOver={e => { e.currentTarget.style.background = "#111E6B"; e.currentTarget.style.transform = "translateY(-1px)"; }}
             onMouseOut={e => { e.currentTarget.style.background = "#1A2E8F"; e.currentTarget.style.transform = "translateY(0)"; }}
           >
-            Start Free Trial
+            {early ? "Get Early Access — $1/mo" : "Start Free Trial"}
           </button>
 
           {/* Secondary — Log In */}
@@ -212,7 +218,7 @@ function LandingPage({ onLogin, onSignUp }) {
 
         {/* Trial note */}
         <p style={{ fontSize: "11px", color: "#9CA3AF" }}>
-          7 days free · then $59.99/month · cancel anytime
+          {early ? "$1/month · early adopter pricing · cancel anytime" : "7 days free · then $59.99/month · cancel anytime"}
         </p>
 
         {/* Matthias credit */}
@@ -240,6 +246,7 @@ function SubscriptionGate() {
   const { user } = useUser();
   const [checking, setChecking] = useState(true);
   const [hasSubscription, setHasSubscription] = useState(false);
+  const early = isEarlyAdopter();
 
   useEffect(() => {
     if (!user) return;
@@ -280,6 +287,7 @@ function SubscriptionGate() {
       body: JSON.stringify({
         userId: user.id,
         email: user.primaryEmailAddress?.emailAddress,
+        plan: early ? "early" : undefined,
       }),
     });
     const data = await res.json();
@@ -339,10 +347,12 @@ function SubscriptionGate() {
             Get unlimited access to your AI strategy partner — challenging your assumptions and helping you build smarter.
           </p>
           <div style={{ background: "#EEF0F8", borderRadius: "8px", padding: "10px 16px", marginBottom: "16px", fontSize: "13px", color: "#1A2E8F", fontWeight: "500" }}>
-            🎉 7-day free trial — no charge until day 8
+            {early ? "🎉 Early adopter pricing — thanks for testing with us" : "🎉 7-day free trial — no charge until day 8"}
           </div>
           <p style={{ fontSize: "24px", fontWeight: "700", color: "#0D1129", marginBottom: "24px" }}>
-            $59.99<span style={{ fontSize: "14px", fontWeight: "400", color: "#6B7280" }}>/month after trial</span>
+            {early
+              ? <>$1<span style={{ fontSize: "14px", fontWeight: "400", color: "#6B7280" }}>/month</span></>
+              : <>$59.99<span style={{ fontSize: "14px", fontWeight: "400", color: "#6B7280" }}>/month after trial</span></>}
           </p>
           <button onClick={handleSubscribe} style={{
             background: "#1A2E8F", color: "white", border: "none",
@@ -352,10 +362,10 @@ function SubscriptionGate() {
             textTransform: "uppercase", borderRadius: "8px", width: "100%",
             boxShadow: "0 4px 14px rgba(26,46,143,0.3)"
           }}>
-            Start Free Trial
+            {early ? "Get Early Access — $1/mo" : "Start Free Trial"}
           </button>
           <p style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "12px" }}>
-            7 days free · then $59.99/month · cancel anytime
+            {early ? "$1/month · cancel anytime" : "7 days free · then $59.99/month · cancel anytime"}
           </p>
         </div>
       </div>
