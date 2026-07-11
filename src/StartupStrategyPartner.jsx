@@ -347,7 +347,7 @@ export default function StartupStrategyPartner() {
       const data = await res.json();
       const assistantContent = data.content?.[0]?.text
         || (data.error?.message ? `Something went wrong: ${data.error.message}` : null)
-        || `Something went wrong (no response content). Status ${res.status}.`;
+        || `Something went wrong. Status ${res.status}. Raw: ${JSON.stringify(data).slice(0, 400)}`;
       setMessages(prev => [...prev, {
         role:"assistant",
         content: assistantContent
